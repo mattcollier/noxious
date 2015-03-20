@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>noxious</title>
+    <link rel="stylesheet" type="text/css" href="node_modules/bootstrap/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="css/style.css">
+    <!-- Optional theme
+    <link rel="stylesheet" href="./node_modules/bootstrap/dist/css/bootstrap-theme.min.css">
+-->
+    <!-- Latest compiled and minified JavaScript -->
+<!--    <script src="./node_modules/bootstrap/dist/js/bootstrap.min.js"></script> -->
+    <script>
+      window.$ = window.jQuery = require('./node_modules/jquery/dist/jquery.min.js');
+      require('./node_modules/bootstrap/dist/js/bootstrap.min.js');
+
+      var ipc = require('ipc');
+      console.log(ipc.sendSync('synchronous-message', 'ping')); // prints "pong"
+
+      ipc.on('asynchronous-reply', function(arg) {
+        console.log(arg); // prints "pong"
+      });
+      ipc.send('asynchronous-message', 'ping');
+
+      ipc.on('ping', function(message) {
+        console.log(message);
+      });
+
+      ipc.on('msg', function(message) {
+        $("#messageBox").append(message+'<br />');
+        console.log(message);
+      });
+
+      function notifyAtom(msg) {
+        ipc.send(msg.method, msg.content);
+      }
+
+      // tor Hidden Service Address
+      // .onion is removed from the address to avoid css issues
+      var torAddress = {fullAddress: '', get address() {return this.fullAddress.split('.')[0];}, alias: ''};
+
+      ipc.on('status', function(msg) {
+        switch (msg.type) {
+          case 'onionAddress':
+            var chatID = Object.create(torAddress);
+            chatID.fullAddress = msg.content;
+            $('#chatID').replaceWith(chatID.address);
+            break;
+        }
+      });
+
+      function genContactRequestHTML(contactAddress) {
+        var reqCode = '<div id="request_' + contactAddress.address + '" class="pendingContactRequest">'
+        if(contactAddress.direction == 'incoming') {
+          reqCode = reqCode + '<span data-tip="incoming request" class="requestIcon glyphicon glyphicon-log-in" aria-hidden="true"></span>';
+        } else {
+          reqCode = reqCode + '<span data-tip="outgoing request" class="requestIcon glyphicon glyphicon-log-out" aria-hidden="true"></span>';
+        }
+        reqCode = reqCode + '<span class="contactAddress">' + contactAddress.address + '</span></div>';
+        return reqCode;
+      }
+
+      ipc.on('contact', function(msg) {
+        switch (msg.type) {
+          case 'contactRequest':
+            var contactAddress = Object.create(torAddress);
+            contactAddress.fullAddress = msg.from;
+            contactAddress.direction = msg.direction;
+            $('#contactRequestList').append(genContactRequestHTML(contactAddress));
+            $('#contactRequestContainer').slideDown(400);
+            break;
+          case 'initContactList':
+            var contactList = msg.contactList;
+            //  $('#contactList').replaceWith('');
+            //console.log('Contact List 2: ', contactList);
+            //console.log('Contacts: ',Object.keys(contactList).map(function (key) { return contactList[key]; }));
+            var contactArray = Object.keys(contactList).map(function (key) { return contactList[key]; });
+            for (contactIndex in contactArray) {
+              // TODO store contact objects into array
+              var contactAddress = Object.create(torAddress);
+              contactAddress.fullAddress = contactArray[contactIndex].contactAddress;
+              var contactCode = '<div id="contact_"' + contactAddress.address +'" class="contact"> \
+              <span class="glyphicon glyphicon-user" aria-hidden="true"></span> \
+              <span class="contactAddress">' + contactAddress.address + '</span></div>';
+              $('#contactList').append(contactCode);
+            }
+            break;
+          case 'initContactRequestList':
+            var contactRequestList = msg.contactRequestList;
+            var reqArray = Object.keys(contactRequestList).map(function(key){ return contactRequestList[key]; });
+            for (reqIndex in reqArray) {
+              var requestAddress = Object.create(torAddress);
+              requestAddress.fullAddress = reqArray[reqIndex].contactAddress;
+              requestAddress.direction = reqArray[reqIndex].direction;
+              $('#contactRequestList').append(genContactRequestHTML(requestAddress));
+            }
+            $('#contactRequestContainer').slideDown(400);
+            break;
+        }
+      });
+
+      $(document).on('click','.pendingContactRequest', function() {
+        var contactAddress = this.id.split('_')[1];
+        // display if it's not already displayed
+        if($('#reqInfo_' + contactAddress).length == 0) {
+          var requestInfo = '<div id="reqInfo_' + contactAddress + '"><strong>' + contactAddress + '</strong> would like to add you on Noxious</div> \
+            <div id=\'requestButtons_' + contactAddress + '\'><button id=\'accept_' + contactAddress + '\' \
+            class=\'btn-success acceptContactRequest\'> Accept</button> or \
+            <button id=\'decline_' + contactAddress + '\' class=\'btn-danger declineContactRequest\'>Decline</button></div>';
+          $('#messageBox').append(requestInfo);
+        }
+      });
+
+      $(document).on('click','.acceptContactRequest', function () {
+        var contactAddress = this.id.split('_')[1];
+        var msgObj = {};
+        msgObj.method = 'contact';
+        msgObj.content = { type: 'acceptContactRequest', contactAddress: contactAddress+'.onion' };
+        notifyAtom(msgObj);
+        $('#requestButtons_' + contactAddress).replaceWith('Accepted.');
+        $('#request_' + contactAddress).remove();
+        // if there are no other requests, hide container
+        if($('#contactRequestList').children().length == 0) {
+          $('#contactRequestContainer').slideUp(400);
+        }
+      });
+
+      $(document).on('click','.declineContactRequest', function () {
+        // something else
+      })
+
+      $(document).ready(function() {
+
+        // Add Contact
+        $('#addContactButton').click(function () {
+          $('#newContactFormContainer').slideDown('fast');
+        });
+
+        // Send Contact Request
+        $('#sendContactRequestButton').click(function () {
+          // TODO validation on onion address
+          var contactAddress = $('#newContactAddressText').val() + '.onion';
+          var msgObj = {};
+          msgObj.method = 'contact';
+          msgObj.content = {type: 'sendContactRequest', contactAddress: contactAddress};
+          notifyAtom(msgObj);
+          $('#newContactAddressText').val('');
+          $('#newContactFormContainer').slideUp('fast');
+        });
+
+        // Cancel Contact Request
+        $('#cancelContactRequestButton').click(function () {
+          $('#newContactAddressText').val('');
+          $('#newContactFormContainer').slideUp('fast');
+        });
+      });
+
+    </script>
+  </head>
+  <body>
+  <!--  We are using node.js <script>document.write(process.version)</script>
+    and atom-shell <script>document.write(process.versions['atom-shell'])</script>.
+  -->
+    <div id='mainContainer' class='col-sm-12'>
+      <div class='row'>
+        <div id='sideBar' class='col-sm-3'>
+          <div id='userInformationContainer'>
+            <div id='userInformationHeader'>
+              <h4>Chat ID</h4>
+            </div>
+            <div id='userInformationData'>
+              <span class="glyphicon glyphicon-asterisk" aria-hidden="true"></span>
+              <span id="chatID" class='text-center'></span>
+            </div>
+          </div>
+          <div id='contactsContainer'>
+            <div id='contactsHeader'>
+              <h4>Contacts</h4>
+              <span id="addContactButton" class="glyphicon glyphicon-plus" aria-hidden="true"></span>
+            </div>
+            <div id="newContactFormContainer">
+              <div><input id='newContactAddressText' type="text" size="17"></div>
+              <div id="newContactFormButtons">
+                <button id="sendContactRequestButton" class="btn-success">Send Invite</button>
+                <button id="cancelContactRequestButton" class="btn-danger">Cancel</button>
+              </div>
+            </div>
+            <div id='contactRequestContainer'>
+              <div id='contactRequestHeader'>
+                Pending contact requests
+              </div>
+              <div id='contactRequestList'>
+              </div>
+            </div>
+            <div id='contactList'>
+            </div>
+          </div>
+        </div>
+        <div id='middleColumn' class='col-sm-9'>
+          <div id='messageBox'>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

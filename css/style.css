@@ -1,0 +1,106 @@
+#mainContainer {
+  padding: 0px;
+}
+
+#messageBox {
+  padding-top: 1em;
+}
+
+#sideBar{
+}
+
+#textInput {
+  margin-top: 5px;
+  padding: 5px;
+  width: 100%;
+}
+
+#userInformationContainer {
+  border-bottom: 1px solid;
+  background-color: #66A3FF;
+  padding: 5px;
+}
+
+#userInformationHeader {
+  padding-left: 5px;
+}
+
+#userInformationData {
+  height: 30px;
+  padding: 5px;
+}
+
+#contactsContainer {
+  background-color: #E6F0FF;
+  padding: 5px;
+}
+
+#contactsHeader {
+  padding-left: 5px;
+  border-bottom: solid 1px;
+}
+
+#contactsHeader h4 {
+  display:inline-block;
+}
+
+#addContactButton {
+  display:inline-block;
+  float:right;
+  padding-top: 10px;
+  padding-right: 10px;
+  cursor: pointer;
+}
+
+#addContactButton:hover {
+  color: #FF0000;
+}
+
+#newContactFormContainer {
+  display: none;
+  padding: 5px;
+  border-bottom: solid 1px;
+}
+
+#newContactFormButtons {
+  padding-top: 5px;
+}
+
+#contactRequestContainer {
+  display: none;
+  border-bottom: solid 1px;
+  background-color: #FFD700;
+}
+#contactRequestHeader {
+  padding: 5px;
+}
+
+.pendingContactRequest {
+  padding: 8px;
+}
+
+.pendingContactRequest:hover {
+  background-color: #66CCFF;
+  cursor: pointer;
+}
+
+.contact {
+  padding: 8px;
+}
+
+.contact:hover {
+  background-color: #66CCFF;
+  cursor: pointer;
+}
+
+.contactAddress {
+  padding-left: 3px;
+}
+
+.contactRequestAddress {
+  padding-left: 5px;
+}
+
+.requestIcon {
+  padding-right: 5px;
+}
