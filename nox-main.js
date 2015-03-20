@@ -155,15 +155,16 @@ function startHiddenService() {
     // does not exist, create it
     console.log('Creating new noxious service');
     ths.createHiddenService('noxious','1111', true);
-    // TODO tor needs some time to reload after new service, wait an run again.  more elegant solution?\
-    setTimeout(function () { startHiddenService(); }, 2000);
   } else {
-    console.log('Noxious Service Exists: %j', noxiousProperties);
-    myAddress=ths.getOnionAddress('noxious');
-    var msgObj = {};
-    msgObj.method = 'status';
-    msgObj.content = { type:'onionAddress', content: myAddress };
-    notifyGUI(msgObj);
+    ths.getOnionAddress('noxious', function(err, onionAddress) {
+      if(!err) {
+        myAddress = onionAddress;
+        var msgObj = {};
+        msgObj.method = 'status';
+        msgObj.content = { type:'onionAddress', content: myAddress };
+        notifyGUI(msgObj);
+      }
+    });
   }
 }
 
