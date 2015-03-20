@@ -14,7 +14,7 @@ var app = require('app');  // Module to control application life.
 var BrowserWindow = require('browser-window');  // Module to create native browser window.
 
 var thsBuilder = require('ths');
-var ths = new thsBuilder(__dirname);
+var ths = new thsBuilder(dataDir);
 // crypto related
 
 var NoxCrypto = require(__dirname + '/nox-crypto.js');
