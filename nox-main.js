@@ -22,10 +22,6 @@ var myCrypto = new NoxCrypto({ dataDir: dataDir, fileName: 'privatekey.json'});
 
 var myAddress;
 
-var person = function (lastName) {
-  this.lastName = lastName;
-}
-
 function notifyGUI(msg) {
   // TODO, needs improvement?
   if(!mainWindow.webContents.isLoading()) {
@@ -213,6 +209,11 @@ app.on('ready', function() {
         // for now, just reinit the contact list
         getContacts();
         // TODO now send encrypted message back to contact containing this Public Key.
+        break;
+      case 'declineContactRequest':
+        // TODO Should the sender be notified?
+        contactRequestList.delKey(content.contactAddress);
+        // no need to update GUI
         break;
       case 'sendContactRequest':
         // do not send request to myAddress

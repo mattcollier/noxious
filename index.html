@@ -106,9 +106,12 @@
           var requestInfoHTML = '';
           if(direction == 'incoming') {
             requestInfoHTML = '<div id="reqInfo_' + contactAddress + '"><strong>' + contactAddress + '</strong> would like to add you on Noxious</div> \
-              <div id=\'requestButtons_' + contactAddress + '\'><button id=\'accept_' + contactAddress + '\' \
-              class=\'btn-success acceptContactRequest\'> Accept</button> or \
-              <button id=\'decline_' + contactAddress + '\' class=\'btn-danger declineContactRequest\'>Decline</button></div>';
+              <div id="requestButtons_' + contactAddress + '"><button id="accept_' + contactAddress + '" \
+              class="btn-success requestChoiceButton" data-choice="acceptContactRequest" \
+              data-description="Accepted.">Accept</button> or \
+              <button id="decline_' + contactAddress + '" class="btn-danger requestChoiceButton" \
+              data-choice="declineContactRequest" data-description="Declined."> \
+              Decline</button></div>';
           } else {
             requestInfoHTML = '<div id="reqInfo_' + contactAddress + '">You sent a contact request \
               to <strong>' + contactAddress + '</strong> but there has been no response.';
@@ -117,22 +120,22 @@
         }
       });
 
-      $(document).on('click','.acceptContactRequest', function () {
+      $(document).on('click','.requestChoiceButton', function () {
         var contactAddress = this.id.split('_')[1];
+        var choice = $(this).data('choice');
+        var description = $(this).data('description');
         var msgObj = {};
         msgObj.method = 'contact';
-        msgObj.content = { type: 'acceptContactRequest', contactAddress: contactAddress+'.onion' };
+        msgObj.content = { type: choice, contactAddress: contactAddress+'.onion' };
         notifyAtom(msgObj);
-        $('#requestButtons_' + contactAddress).replaceWith('Accepted.');
+        // TODO If a request is declined, what happens if another request from same arrives
+        // currently the display of info would be blocked
+        $('#requestButtons_' + contactAddress).replaceWith(description);
         $('#request_' + contactAddress).remove();
         // if there are no other requests, hide container
         if($('#contactRequestList').children().length == 0) {
           $('#contactRequestContainer').slideUp(400);
         }
-      });
-
-      $(document).on('click','.declineContactRequest', function () {
-        // something else
       })
 
       $(document).ready(function() {
@@ -140,6 +143,7 @@
         // Add Contact
         $('#addContactButton').click(function () {
           $('#newContactFormContainer').slideDown('fast');
+          $('#newContactAddressText').focus();
         });
 
         // Send Contact Request
