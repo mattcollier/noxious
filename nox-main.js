@@ -52,6 +52,11 @@ function getContactRequests() {
       msgObj.method = 'contact';
       msgObj.content = { type: 'initContactRequestList', contactRequestList: content };
       notifyGUI(msgObj);
+    } else {
+      var msgObj = {};
+      msgObj.method = 'contact';
+      msgObj.content = { type: 'clearContactRequestList', contactRequestList: {} };
+      notifyGUI(msgObj);
     }
   });
 }
@@ -119,6 +124,7 @@ function registerContactRequest(req) {
   // check for dups in requests list and contact list
   if(contactRequestList.getKey(req.from) === undefined && contactList.getKey(req.from) === undefined) {
     // this is a new incoming contact Request
+    console.log('[contact] New Contact Request Received');
     tmpObj.direction = 'incoming';
     contactRequestList.addKey(req.from, tmpObj);
     var msgObj={};
@@ -127,6 +133,7 @@ function registerContactRequest(req) {
     notifyGUI(msgObj);
   } else if (contactRequestList.getKey(req.from).direction == 'outgoing') {
     // this person accepted a contact request
+    console.log('[contact] Contact Request Accepted');
     contactList.addKey(req.from, tmpObj);
     contactRequestList.delKey(req.from);
     // TODO fancy GUI work goes here, for now, just reinit both lists

@@ -56,6 +56,7 @@
           reqCode = reqCode + '<span data-tip="outgoing request" class="requestIcon glyphicon glyphicon-log-out" aria-hidden="true"></span>';
         }
         reqCode = reqCode + '<span class="contactAddress">' + contactAddress.address + '</span></div>';
+        console.log('reqCode: ', reqCode);
         return reqCode;
       }
 
@@ -94,6 +95,13 @@
               $('#contactRequestList').append(genContactRequestHTML(requestAddress));
             }
             $('#contactRequestContainer').slideDown(400);
+            console.log('AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA');
+            break;
+          case 'clearContactRequestList':
+            $('#contactRequestContainer').slideUp(400, function() {
+              $('#contactRequestList').html('');
+            });
+            console.log('BBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBB');
             break;
         }
       });
