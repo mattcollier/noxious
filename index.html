@@ -104,7 +104,7 @@
         // display if it's not already displayed
         if($('#reqInfo_' + contactAddress).length == 0) {
           var requestInfoHTML = '';
-          if(direction == 'outgoing') {
+          if(direction == 'incoming') {
             requestInfoHTML = '<div id="reqInfo_' + contactAddress + '"><strong>' + contactAddress + '</strong> would like to add you on Noxious</div> \
               <div id=\'requestButtons_' + contactAddress + '\'><button id=\'accept_' + contactAddress + '\' \
               class=\'btn-success acceptContactRequest\'> Accept</button> or \

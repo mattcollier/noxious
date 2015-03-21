@@ -109,7 +109,7 @@ function registerContactRequest(req) {
   tmpObj.contactAddress = req.from;
   tmpObj.direction = 'incoming';
   // check for dups in requests list and contact list
-  if(contactRequestList.getKey[req.from] == null && contactList.getKey(req.from) == 'undefined') {
+  if(contactRequestList.getKey[req.from] == null && contactList.getKey(req.from) === undefined) {
     contactRequestList.addKey(req.from, tmpObj);
     var msgObj={};
     msgObj.method = 'contact';
