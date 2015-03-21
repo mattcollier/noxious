@@ -109,7 +109,7 @@ function registerContactRequest(req) {
   tmpObj.contactAddress = req.from;
   tmpObj.direction = 'incoming';
   // check for dups in requests list and contact list
-  if(contactRequestList.getKey[req.from] == null && contactList.getKey[req.from] == null) {
+  if(contactRequestList.getKey[req.from] == null && contactList.getKey(req.from) == 'undefined') {
     contactRequestList.addKey(req.from, tmpObj);
     var msgObj={};
     msgObj.method = 'contact';
@@ -156,6 +156,7 @@ function startHiddenService() {
     console.log('Creating new noxious service');
     ths.createHiddenService('noxious','1111', true);
   } else {
+    // TODO does not work propery on initial startup: https://github.com/Mowje/node-ths/issues/3
     ths.getOnionAddress('noxious', function(err, onionAddress) {
       if(!err) {
         myAddress = onionAddress;
@@ -211,7 +212,7 @@ app.on('ready', function() {
         contactRequestList.delKey(content.contactAddress);
         // for now, just reinit the contact list
         getContacts();
-        // now send encrypted message back to contact containing this Public Key.
+        // TODO now send encrypted message back to contact containing this Public Key.
         break;
       case 'sendContactRequest':
         // do not send request to myAddress
@@ -227,6 +228,10 @@ app.on('ready', function() {
           msgObj.content = introObj;
           msgObj.signature = signature;
           myNoxClient.transmitObject(content.contactAddress, msgObj);
+          var contactRequest = { contactAddress: content.contactAddress, direction: 'outgoing' };
+          contactRequestList.addKey(content.contactAddress, contactRequest);
+          // reinit the request list
+          getContactRequests();
         }
         break;
     }

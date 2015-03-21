@@ -49,7 +49,7 @@
       });
 
       function genContactRequestHTML(contactAddress) {
-        var reqCode = '<div id="request_' + contactAddress.address + '" class="pendingContactRequest">'
+        var reqCode = '<div id="request_' + contactAddress.address + '" class="pendingContactRequest" data-direction="' + contactAddress.direction + '">'
         if(contactAddress.direction == 'incoming') {
           reqCode = reqCode + '<span data-tip="incoming request" class="requestIcon glyphicon glyphicon-log-in" aria-hidden="true"></span>';
         } else {
@@ -100,13 +100,20 @@
 
       $(document).on('click','.pendingContactRequest', function() {
         var contactAddress = this.id.split('_')[1];
+        var direction = $(this).data("direction");
         // display if it's not already displayed
         if($('#reqInfo_' + contactAddress).length == 0) {
-          var requestInfo = '<div id="reqInfo_' + contactAddress + '"><strong>' + contactAddress + '</strong> would like to add you on Noxious</div> \
-            <div id=\'requestButtons_' + contactAddress + '\'><button id=\'accept_' + contactAddress + '\' \
-            class=\'btn-success acceptContactRequest\'> Accept</button> or \
-            <button id=\'decline_' + contactAddress + '\' class=\'btn-danger declineContactRequest\'>Decline</button></div>';
-          $('#messageBox').append(requestInfo);
+          var requestInfoHTML = '';
+          if(direction == 'outgoing') {
+            requestInfoHTML = '<div id="reqInfo_' + contactAddress + '"><strong>' + contactAddress + '</strong> would like to add you on Noxious</div> \
+              <div id=\'requestButtons_' + contactAddress + '\'><button id=\'accept_' + contactAddress + '\' \
+              class=\'btn-success acceptContactRequest\'> Accept</button> or \
+              <button id=\'decline_' + contactAddress + '\' class=\'btn-danger declineContactRequest\'>Decline</button></div>';
+          } else {
+            requestInfoHTML = '<div id="reqInfo_' + contactAddress + '">You sent a contact request \
+              to <strong>' + contactAddress + '</strong> but there has been no response.';
+          }
+          $('#messageBox').append(requestInfoHTML);
         }
       });
 
