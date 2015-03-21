@@ -71,7 +71,7 @@
             break;
           case 'initContactList':
             var contactList = msg.contactList;
-            //  $('#contactList').replaceWith('');
+            $('#contactList').html('');
             //console.log('Contact List 2: ', contactList);
             //console.log('Contacts: ',Object.keys(contactList).map(function (key) { return contactList[key]; }));
             var contactArray = Object.keys(contactList).map(function (key) { return contactList[key]; });
@@ -86,6 +86,7 @@
             }
             break;
           case 'initContactRequestList':
+            $('#contactRequestList').html('');
             var contactRequestList = msg.contactRequestList;
             var reqArray = Object.keys(contactRequestList).map(function(key){ return contactRequestList[key]; });
             for (reqIndex in reqArray) {
