@@ -56,6 +56,19 @@ function getContactRequests() {
   });
 }
 
+function buildContactRequest(destination) {
+  var introObj = {};
+  introObj.type = 'introduction';
+  introObj.from = myAddress;
+  introObj.to = destination;
+  introObj.pubPEM = myCrypto.pubPEM;
+  var signature = myCrypto.signString(JSON.stringify(introObj));
+  var msgObj = {};
+  msgObj.content = introObj;
+  msgObj.signature = signature;
+  return msgObj;
+}
+
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the javascript object is GCed.
 var mainWindow = null;
@@ -103,14 +116,22 @@ function registerContactRequest(req) {
   var tmpObj = {};
   tmpObj.pubKey = req.pubKey;
   tmpObj.contactAddress = req.from;
-  tmpObj.direction = 'incoming';
   // check for dups in requests list and contact list
-  if(contactRequestList.getKey[req.from] == null && contactList.getKey(req.from) === undefined) {
+  if(contactRequestList.getKey(req.from) === undefined && contactList.getKey(req.from) === undefined) {
+    // this is a new incoming contact Request
+    tmpObj.direction = 'incoming';
     contactRequestList.addKey(req.from, tmpObj);
     var msgObj={};
     msgObj.method = 'contact';
     msgObj.content = { type: 'contactRequest', from: req.from, direction: 'incoming' };
     notifyGUI(msgObj);
+  } else if (contactRequestList.getKey(req.from).direction == 'outgoing') {
+    // this person accepted a contact request
+    contactList.addKey(req.from, tmpObj);
+    contactRequestList.delKey(req.from);
+    // TODO fancy GUI work goes here, for now, just reinit both lists
+    getContacts();
+    getContactRequests();
   }
 }
 
@@ -123,8 +144,8 @@ function processMessage(msg) {
       tmpCrypto = new NoxCrypto({'pubPEM': content.pubPEM});
       if (tmpCrypto.signatureVerified(JSON.stringify(content), signature)) {
         console.log('Introduction is properly signed.');
-        // TODO enhance from address checking, for now, not null, and not myAddress
-        if (content.to==myAddress && content.from!=='undefined' && content.from && content.from!==myAddress) {
+        // TODO enhance from address checking, for now, not null or undefined, and not myAddress
+        if (content.to==myAddress && content.from!==undefined && content.from && content.from!==myAddress) {
           // content.to is part of the signed content.
           console.log('Introduction is properly addressed.');
           // Contact request is valid, register it, TODO check for dups?
@@ -202,13 +223,15 @@ app.on('ready', function() {
     switch (content.type) {
       case 'acceptContactRequest':
         // user has chosen to accept the contact request
+        // send a contact request to sender to provide pubKey
+        // TODO transmitObject should have a callback that triggers only on successful delivery of Message
+        myNoxClient.transmitObject(content.contactAddress, buildContactRequest(content.contactAddress));
         // pull the info from the contactRequestList and make a new conact.
         contactList.addKey(content.contactAddress, contactRequestList.getKey(content.contactAddress));
         // remove the contact request and save
         contactRequestList.delKey(content.contactAddress);
         // for now, just reinit the contact list
         getContacts();
-        // TODO now send encrypted message back to contact containing this Public Key.
         break;
       case 'declineContactRequest':
         // TODO Should the sender be notified?
@@ -219,16 +242,7 @@ app.on('ready', function() {
         // do not send request to myAddress
         // TODO display error message if to=myAddress, for now, discard
         if(content.contactAddress!==myAddress) {
-          var introObj = {};
-          introObj.type = 'introduction';
-          introObj.from = myAddress;
-          introObj.to = content.contactAddress;
-          introObj.pubPEM = myCrypto.pubPEM;
-          var signature = myCrypto.signString(JSON.stringify(introObj));
-          var msgObj = {};
-          msgObj.content = introObj;
-          msgObj.signature = signature;
-          myNoxClient.transmitObject(content.contactAddress, msgObj);
+          myNoxClient.transmitObject(content.contactAddress, buildContactRequest(content.contactAddress));
           var contactRequest = { contactAddress: content.contactAddress, direction: 'outgoing' };
           contactRequestList.addKey(content.contactAddress, contactRequest);
           // reinit the request list
