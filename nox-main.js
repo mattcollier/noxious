@@ -190,6 +190,7 @@ function registerContactRequest(req) {
 
 function processMessage(msg) {
   msgObj = JSON.parse(msg);
+  console.log('[new message] ', msgObj);
   var content = msgObj.content;
   switch (content.type) {
     case 'introduction':
