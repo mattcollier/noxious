@@ -86,7 +86,7 @@
               data-realaddress="' + contactAddress.address + '" \
               data-displayname="' + displayName + '" \
               data-isnickname="' + isNickName + '" \
-              class="contact" > \
+              class="contact"> \
               <span class="glyphicon glyphicon-user" aria-hidden="true"></span> \
               <span id="addressSpan_' + contactAddress.address + '" class="contactAddress" \
               >' + displayName + '</span> \
@@ -124,7 +124,6 @@
           // container needs to be created.
           var containerHTML = '<div id="' + chatContainerID + '" class="hiddenChat specificChatContainer"> \
             <div id="chatContent_' + contactAddress + '" class="chatContent"> \
-              Interesting Conversation goes here... \
             </div> \
             <div id="chatInputDiv_' + contactAddress + '" class="chatInputDiv"> \
               <input id="chatInput_' + contactAddress + '" type="text" class="chatInput" \
@@ -222,6 +221,7 @@
         if (nickName === '~' && isNickName) {
           // remove nickname
           $(textInput).closest('span.contactAddress').html(realAddress);
+          $('#contact_' + realAddress).data('displayname', realAddress);
           var msgObj = {};
           msgObj.method = 'contact';
           msgObj.content = {type: 'delNickName', contactAddress: realAddress+'.onion'};
@@ -230,6 +230,7 @@
           $(textInput).closest('span.contactAddress').html(currentValue);
         } else {
           $(textInput).closest('span.contactAddress').html(nickName);
+          $('#contact_' + realAddress).data('displayname', nickName);
           var msgObj = {};
           msgObj.method = 'contact';
           msgObj.content = {type: 'setNickName', contactAddress: realAddress+'.onion', nickName: nickName};
