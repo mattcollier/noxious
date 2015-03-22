@@ -93,6 +93,10 @@
   cursor: pointer;
 }
 
+.contact:hover .editContactButton {
+  visibility: visible;
+}
+
 .contactAddress {
   padding-left: 3px;
 }
@@ -103,4 +107,14 @@
 
 .requestIcon {
   padding-right: 5px;
+}
+
+.editContactButton {
+  float: right;
+  visibility: hidden;
+}
+
+.nickTextInput {
+  width: 75%;
+  padding: 0px;
 }

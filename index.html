@@ -36,7 +36,7 @@
 
       // tor Hidden Service Address
       // .onion is removed from the address to avoid css issues
-      var torAddress = {fullAddress: '', get address() {return this.fullAddress.split('.')[0];}, alias: ''};
+      var torAddress = {fullAddress: '', get address() {return this.fullAddress.split('.')[0];}, nickName: ''};
 
       ipc.on('status', function(msg) {
         switch (msg.type) {
@@ -73,15 +73,22 @@
             var contactList = msg.contactList;
             $('#contactList').html('');
             //console.log('Contact List 2: ', contactList);
-            //console.log('Contacts: ',Object.keys(contactList).map(function (key) { return contactList[key]; }));
             var contactArray = Object.keys(contactList).map(function (key) { return contactList[key]; });
             for (contactIndex in contactArray) {
-              // TODO store contact objects into array
+              // TODO store contact objects into array??
               var contactAddress = Object.create(torAddress);
               contactAddress.fullAddress = contactArray[contactIndex].contactAddress;
-              var contactCode = '<div id="contact_"' + contactAddress.address +'" class="contact"> \
+              contactAddress.nickName = contactArray[contactIndex].nickName;
+              var displayName = (contactAddress.nickName) ? contactAddress.nickName : contactAddress.address;
+              var isNickName = (contactAddress.nickName) ? true : false;
+              var contactCode = '<div id="contact_' + contactAddress.address +'" \
+              class="contact" contextmenu="context-menu-test"> \
               <span class="glyphicon glyphicon-user" aria-hidden="true"></span> \
-              <span class="contactAddress">' + contactAddress.address + '</span></div>';
+              <span id="addressSpan_' + contactAddress.address + '" class="contactAddress" \
+              data-realaddress="' + contactAddress.address + '" data-isnickname="' + isNickName + '">'
+              + displayName + '</span> \
+              <span class="editContactButton glyphicon glyphicon-edit" aria-hidden="true"></span> \
+              </div>';
               $('#contactList').append(contactCode);
             }
             break;
@@ -96,20 +103,18 @@
               $('#contactRequestList').append(genContactRequestHTML(requestAddress));
             }
             $('#contactRequestContainer').slideDown(400);
-            console.log('AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA');
             break;
           case 'clearContactRequestList':
             $('#contactRequestContainer').slideUp(400, function() {
               $('#contactRequestList').html('');
             });
-            console.log('BBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBB');
             break;
         }
       });
 
       $(document).on('click','.pendingContactRequest', function() {
         var contactAddress = this.id.split('_')[1];
-        var direction = $(this).data("direction");
+        var direction = $(this).data('direction');
         // display if it's not already displayed
         if($('#reqInfo_' + contactAddress).length == 0) {
           var requestInfoHTML = '';
@@ -129,7 +134,7 @@
         }
       });
 
-      $(document).on('click','.requestChoiceButton', function () {
+      $(document).on('click','.requestChoiceButton', function() {
         var contactAddress = this.id.split('_')[1];
         var choice = $(this).data('choice');
         var description = $(this).data('description');
@@ -145,7 +150,56 @@
         if($('#contactRequestList').children().length == 0) {
           $('#contactRequestContainer').slideUp(400);
         }
-      })
+      });
+
+      $(document).on('click','.editContactButton', function() {
+        var divID = $(this).closest('div.contact').attr('id');
+        var contactAddress = divID.split('_')[1];
+        var currentValue = $('#addressSpan_'+contactAddress).html();
+        var textInputID = 'nickTextInput_' + contactAddress;
+        var textInputHTML = '<input id="' + textInputID + '" type="text" class="nickTextInput" \
+        data-currentvalue="' + currentValue + '" placeholder="nickname">';
+        $('#addressSpan_'+contactAddress).html(textInputHTML);
+        $('#' + textInputID).focus();
+      });
+
+      function validateNickName(textInput, realAddress, currentValue, isNickName) {
+        var nickName = $(textInput).val();
+        // TODO validate nickname: length, allowed chars etc.
+        if (nickName === '') {
+          $(textInput).closest('span.contactAddress').html(realAddress);
+        } else {
+          $(textInput).closest('span.contactAddress').html(nickName);
+          var msgObj = {};
+          msgObj.method = 'contact';
+          msgObj.content = {type: 'setNickName', contactAddress: realAddress+'.onion', nickName: nickName};
+          notifyAtom(msgObj);
+        }
+      }
+
+      $(document).on('keydown', '.nickTextInput', function(e) {
+        var realAddress = $(this).closest('span.contactAddress').data('realaddress');
+        var currentValue = $(this).data('currentvalue');
+        var isNickName = $(this).closest('span.contactAddress').data('isnickname');
+        if(e.keyCode == 27) {
+          $(this).closest('span.contactAddress').html(currentValue);
+        } else if (e.keyCode == 13) {
+          // enter=13, tab is caught by focusout
+          //validateNickName(this, realAddress, currentValue, isNickName);
+          $(this).blur();
+        }
+      });
+
+      $(document).on('focusout', '.nickTextInput', function() {
+        var realAddress = $(this).closest('span.contactAddress').data('realaddress');
+        var currentValue = $(this).data('currentvalue');
+        var isNickName = $(this).closest('span.contactAddress').data('isnickname');
+        if ($(this).val() == '') {
+          $(this).closest('span.contactAddress').html(currentValue);
+        } else {
+          validateNickName(this, realAddress, currentValue, isNickName);
+        }
+      });
 
       $(document).ready(function() {
 

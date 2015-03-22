@@ -206,7 +206,7 @@ app.on('ready', function() {
   var ipc = require('ipc');
 
   // Create the browser window.
-  mainWindow = new BrowserWindow({width: 800, height: 600});
+  mainWindow = new BrowserWindow({width: 900, height: 600});
   mainWindow.openDevTools();
 
   ths.start(false, function () {
@@ -256,6 +256,10 @@ app.on('ready', function() {
           getContactRequests();
         }
         break;
+      case 'setNickName':
+        var contactInfo = contactList.getKey(content.contactAddress);
+        contactInfo.nickName=content.nickName;
+        contactList.addKey(content.contactAddress, contactInfo);
     }
   });
 
