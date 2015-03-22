@@ -102,8 +102,7 @@ function buildEncryptedMessage(destAddress, msgText) {
   msgObj.signature = myCrypto.signString(JSON.stringify(msgContent));
   var encryptedData = encrypt(tmpCrypto, JSON.stringify(msgObj));
   var encObj = {};
-  encObj.type = "encryptedData";
-  encObj.content = encryptedData;
+  encObj.content = {type: 'encryptedData', data: encryptedData};
   return encObj;
 }
 
@@ -190,7 +189,6 @@ function registerContactRequest(req) {
 
 function processMessage(msg) {
   msgObj = JSON.parse(msg);
-  console.log('[new message] ', msgObj);
   var content = msgObj.content;
   switch (content.type) {
     case 'introduction':
@@ -210,7 +208,7 @@ function processMessage(msg) {
       }
       break;
     case 'encryptedData':
-      console.log(content.encryptedData);
+      console.log('Encrypted Data: ', content.data);
       break;
   }
 }
