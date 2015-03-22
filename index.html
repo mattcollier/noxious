@@ -163,11 +163,18 @@
         $('#' + textInputID).focus();
       });
 
-      function validateNickName(textInput, realAddress, currentValue, isNickName) {
+      function processNickName(textInput, realAddress, currentValue, isNickName) {
         var nickName = $(textInput).val();
         // TODO validate nickname: length, allowed chars etc.
-        if (nickName === '') {
+        if (nickName === '~' && isNickName) {
+          // remove nickname
           $(textInput).closest('span.contactAddress').html(realAddress);
+          var msgObj = {};
+          msgObj.method = 'contact';
+          msgObj.content = {type: 'delNickName', contactAddress: realAddress+'.onion'};
+          notifyAtom(msgObj);
+        } else if (nickName === '') {
+          $(textInput).closest('span.contactAddress').html(currentValue);
         } else {
           $(textInput).closest('span.contactAddress').html(nickName);
           var msgObj = {};
@@ -187,6 +194,10 @@
           // enter=13, tab is caught by focusout
           //validateNickName(this, realAddress, currentValue, isNickName);
           $(this).blur();
+        } else if (e.keyCode == 46) {
+          // del=46, remove nick and revert back to address
+          $(this).val('~');
+          $(this).blur();
         }
       });
 
@@ -194,11 +205,7 @@
         var realAddress = $(this).closest('span.contactAddress').data('realaddress');
         var currentValue = $(this).data('currentvalue');
         var isNickName = $(this).closest('span.contactAddress').data('isnickname');
-        if ($(this).val() == '') {
-          $(this).closest('span.contactAddress').html(currentValue);
-        } else {
-          validateNickName(this, realAddress, currentValue, isNickName);
-        }
+        processNickName(this, realAddress, currentValue, isNickName);
       });
 
       $(document).ready(function() {

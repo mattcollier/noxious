@@ -260,6 +260,11 @@ app.on('ready', function() {
         var contactInfo = contactList.getKey(content.contactAddress);
         contactInfo.nickName=content.nickName;
         contactList.addKey(content.contactAddress, contactInfo);
+        break;
+      case 'delNickName':
+        var contactInfo = contactList.getKey(content.contactAddress);
+        contactInfo.nickName='';
+        contactList.addKey(content.contactAddress, contactInfo);          
     }
   });
 
