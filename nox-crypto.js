@@ -9,6 +9,9 @@ function NoxCrypto (obj) {
   this.myPrivKey='';
   this.pubPEM;
   this.myPubKey='';
+  // TODO this var currently only informs encryption, size is not currently saved with key!
+  // this should be user configurable, and then saved as part of the key object.
+  this.keySize=2048;
   var keys, privPEM;
 
   // accepts either dir, filename or public key

@@ -61,6 +61,38 @@ function getContactRequests() {
   });
 }
 
+function encrypt(noxCryto, clearText, keySizeBytes){
+    var buffer = new Buffer(clearText);
+    var maxBufferSize = keySizeBytes - 42; //according to ursa documentation
+    var bytesDecrypted = 0;
+    var encryptedBuffersList = [];
+
+    //loops through all data buffer encrypting piece by piece
+    while(bytesDecrypted < buffer.length){
+        //calculates next maximun length for temporary buffer and creates it
+        var amountToCopy = Math.min(maxBufferSize, buffer.length - bytesDecrypted);
+        var tempBuffer = new Buffer(amountToCopy);
+
+        //copies next chunk of data to the temporary buffer
+        buffer.copy(tempBuffer, 0, bytesDecrypted, bytesDecrypted + amountToCopy);
+
+        //encrypts and stores current chunk
+        var encryptedBuffer = noxCrypto.myPubKey.encrypt(tempBuffer);
+        encryptedBuffersList.push(encryptedBuffer);
+
+        bytesDecrypted += amountToCopy;
+    }
+
+    //concatenates all encrypted buffers and returns the corresponding String
+    return Buffer.concat(encryptedBuffersList).toString('base64');
+}
+
+function buildEncryptedMessage(destAddress, msgString) {
+  var tmpPubKey = contactList.getKey(destAddress).??????????;
+  var tmpCrypto = new NoxCrypto({'pubPEM': content.pubPEM});
+
+}
+
 function buildContactRequest(destination) {
   var introObj = {};
   introObj.type = 'introduction';
@@ -119,7 +151,7 @@ function registerContactRequest(req) {
   // TODO is a date/time wanted or needed here? Other Data?
   // this same data structure is copied to the contact list upon acceptance.
   var tmpObj = {};
-  tmpObj.pubKey = req.pubKey;
+  tmpObj.pubPEM = req.pubPEM;
   tmpObj.contactAddress = req.from;
   // check for dups in requests list and contact list
   if(contactRequestList.getKey(req.from) === undefined && contactList.getKey(req.from) === undefined) {
@@ -226,6 +258,14 @@ app.on('ready', function() {
     getContactRequests();
   });
 
+  ipc.on('message', function(event, content) {
+    console.log('[message event] ', content);
+    switch (content.type) {
+      case 'sendEncrypted':
+        break;
+    }
+  });
+
   ipc.on('contact', function(event, content) {
     console.log('[contact event] ', content);
     switch (content.type) {
@@ -266,6 +306,7 @@ app.on('ready', function() {
         var contactInfo = contactList.getKey(content.contactAddress);
         contactInfo.nickName='';
         contactList.addKey(content.contactAddress, contactInfo);
+        break;
     }
   });
 
