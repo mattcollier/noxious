@@ -1,5 +1,9 @@
+body,html {
+  height: 100%;
+  overflow: hidden;
+}
+
 #mainContainer {
-  padding: 0px;
 }
 
 #messageBox {
@@ -7,6 +11,9 @@
 }
 
 #sideBar{
+  border-right: 1px solid;
+  padding-right: 0px;
+  padding-bottom: 0px;
 }
 
 #textInput {
@@ -21,8 +28,9 @@
   padding: 5px;
 }
 
-#userInformationHeader {
+#userInformationHeader h5{
   padding-left: 5px;
+  font-weight:bold;
 }
 
 #userInformationData {
@@ -37,17 +45,17 @@
 
 #contactsHeader {
   padding-left: 5px;
-  border-bottom: solid 1px;
 }
 
-#contactsHeader h4 {
+#contactsHeader h6 {
   display:inline-block;
+  font-weight:bold;
 }
 
 #addContactButton {
   display:inline-block;
   float:right;
-  padding-top: 10px;
+  padding-top: 5px;
   padding-right: 10px;
   cursor: pointer;
 }
@@ -117,4 +125,45 @@
 .nickTextInput {
   width: 75%;
   padding: 0px;
+}
+
+.chatContainer {
+}
+
+.chatHeader {
+  font-weight: bold;
+  font-size: 1.25em;
+}
+
+.chatInputDiv {
+  position: absolute;
+  bottom: -20px;
+  width: 90%;
+}
+
+.chatInput {
+  width: 100%;
+}
+
+.chatContent {
+  overflow-x: hidden;
+  overflow-y: scroll;
+  height: 100%;
+}
+
+.specificChatContainer {
+  height: 100%;
+}
+
+.hiddenChat {
+  display: none;
+}
+
+.height100 {
+  height: 100%;
+}
+
+.container-fluid {
+  padding:0px;
+  margin: 0px;
 }

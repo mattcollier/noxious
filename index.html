@@ -12,6 +12,7 @@
     <script>
       window.$ = window.jQuery = require('./node_modules/jquery/dist/jquery.min.js');
       require('./node_modules/bootstrap/dist/js/bootstrap.min.js');
+      var activeChatAddress = '';
 
       var ipc = require('ipc');
       console.log(ipc.sendSync('synchronous-message', 'ping')); // prints "pong"
@@ -82,11 +83,13 @@
               var displayName = (contactAddress.nickName) ? contactAddress.nickName : contactAddress.address;
               var isNickName = (contactAddress.nickName) ? true : false;
               var contactCode = '<div id="contact_' + contactAddress.address +'" \
-              class="contact" contextmenu="context-menu-test"> \
+              data-realaddress="' + contactAddress.address + '" \
+              data-displayname="' + displayName + '" \
+              data-isnickname="' + isNickName + '" \
+              class="contact" > \
               <span class="glyphicon glyphicon-user" aria-hidden="true"></span> \
               <span id="addressSpan_' + contactAddress.address + '" class="contactAddress" \
-              data-realaddress="' + contactAddress.address + '" data-isnickname="' + isNickName + '">'
-              + displayName + '</span> \
+              >' + displayName + '</span> \
               <span class="editContactButton glyphicon glyphicon-edit" aria-hidden="true"></span> \
               </div>';
               $('#contactList').append(contactCode);
@@ -109,6 +112,53 @@
               $('#contactRequestList').html('');
             });
             break;
+        }
+      });
+
+      $(document).on('click','.contact',function() {
+        var contactAddress = $(this).data('realaddress');
+        var displayName = $(this).data('displayname');
+        var chatContainerID = 'chatContainer_' + contactAddress;
+        var activeChatContainerID = 'chatContainer_' + activeChatAddress;
+        if($('#chatContainer_' + contactAddress).length == 0) {
+          // container needs to be created.
+          var containerHTML = '<div id="' + chatContainerID + '" class="hiddenChat specificChatContainer"> \
+            <div id="chatContent_' + contactAddress + '" class="chatContent"> \
+              Interesting Conversation goes here... \
+            </div> \
+            <div id="chatInputDiv_' + contactAddress + '" class="chatInputDiv"> \
+              <input id="chatInput_' + contactAddress + '" type="text" class="chatInput" \
+              data-realaddress="' + contactAddress + '"> \
+            </div> \
+            </div>';
+          $('#chatContainer').append(containerHTML);
+          $('#chatContainer').css('height', $(window).height() - 80);
+          $('#' + activeChatContainerID).toggleClass('hiddenChat');
+          $('#' + chatContainerID).toggleClass('hiddenChat');
+        } else {
+          // it already exists, just show it
+          $('#' + activeChatContainerID).toggleClass('hiddenChat');
+          $('#' + chatContainerID).toggleClass('hiddenChat');
+        }
+        $('#chatInput_' + contactAddress).focus();
+        activeChatAddress = contactAddress;
+        $('#chatHeader').html(displayName);
+      });
+
+      function scrollToBottom (element) {
+        // TODO scrolling should be enhanced if user has scrolled up
+        $(element).scrollTop($(element).prop("scrollHeight"));
+      }
+
+      $(document).on('keydown', '.chatInput', function(e) {
+        contactAddress = $(this).data('realaddress');
+        var chatContentID = 'chatContent_' + contactAddress;
+        chatText = $(this).val();
+        if(e.keyCode == 13) {
+          var chatHTML = '<div class="chatText"><strong>me: </strong>' + chatText + '</div>';
+          $('#' + chatContentID).append(chatHTML);
+          scrollToBottom($('#' + chatContentID));
+          $(this).val('');
         }
       });
 
@@ -152,9 +202,9 @@
         }
       });
 
-      $(document).on('click','.editContactButton', function() {
-        var divID = $(this).closest('div.contact').attr('id');
-        var contactAddress = divID.split('_')[1];
+      $(document).on('click','.editContactButton', function(e) {
+        e.stopPropagation();
+        var contactAddress = $(this).closest('div.contact').data('realaddress');
         var currentValue = $('#addressSpan_'+contactAddress).html();
         var textInputID = 'nickTextInput_' + contactAddress;
         var textInputHTML = '<input id="' + textInputID + '" type="text" class="nickTextInput" \
@@ -163,7 +213,10 @@
         $('#' + textInputID).focus();
       });
 
-      function processNickName(textInput, realAddress, currentValue, isNickName) {
+      function processNickName(textInput) {
+        var realAddress = $(textInput).closest('div.contact').data('realaddress');
+        var currentValue = $(textInput).data('currentvalue');
+        var isNickName = $(textInput).closest('div.contact').data('isnickname');
         var nickName = $(textInput).val();
         // TODO validate nickname: length, allowed chars etc.
         if (nickName === '~' && isNickName) {
@@ -185,11 +238,9 @@
       }
 
       $(document).on('keydown', '.nickTextInput', function(e) {
-        var realAddress = $(this).closest('span.contactAddress').data('realaddress');
-        var currentValue = $(this).data('currentvalue');
-        var isNickName = $(this).closest('span.contactAddress').data('isnickname');
         if(e.keyCode == 27) {
-          $(this).closest('span.contactAddress').html(currentValue);
+          $(this).val('');
+          $(this).blur();
         } else if (e.keyCode == 13) {
           // enter=13, tab is caught by focusout
           //validateNickName(this, realAddress, currentValue, isNickName);
@@ -202,14 +253,14 @@
       });
 
       $(document).on('focusout', '.nickTextInput', function() {
-        var realAddress = $(this).closest('span.contactAddress').data('realaddress');
-        var currentValue = $(this).data('currentvalue');
-        var isNickName = $(this).closest('span.contactAddress').data('isnickname');
-        processNickName(this, realAddress, currentValue, isNickName);
+        processNickName(this);
       });
 
-      $(document).ready(function() {
+      $(window).resize(function(){
+        $('#chatContainer').css('height', $(window).height() - 80);
+      }).resize();
 
+      $(document).ready(function() {
         // Add Contact
         $('#addContactButton').click(function () {
           $('#newContactFormContainer').slideDown('fast');
@@ -241,12 +292,12 @@
   <!--  We are using node.js <script>document.write(process.version)</script>
     and atom-shell <script>document.write(process.versions['atom-shell'])</script>.
   -->
-    <div id='mainContainer' class='col-sm-12'>
-      <div class='row'>
-        <div id='sideBar' class='col-sm-3'>
+    <div id='mainContainer' class='container-fluid height100'>
+      <div class='row height100'>
+        <div id='sideBar' class='col-sm-3 height100'>
           <div id='userInformationContainer'>
             <div id='userInformationHeader'>
-              <h4>Chat ID</h4>
+              <h5>CHAT ID</h5>
             </div>
             <div id='userInformationData'>
               <span class="glyphicon glyphicon-asterisk" aria-hidden="true"></span>
@@ -255,7 +306,7 @@
           </div>
           <div id='contactsContainer'>
             <div id='contactsHeader'>
-              <h4>Contacts</h4>
+              <h6>CONTACTS</h6>
               <span id="addContactButton" class="glyphicon glyphicon-plus" aria-hidden="true"></span>
             </div>
             <div id="newContactFormContainer">
@@ -277,6 +328,10 @@
           </div>
         </div>
         <div id='middleColumn' class='col-sm-9'>
+          <div id="chatHeader" class="chatHeader">
+          </div>
+          <div id="chatContainer" class="chatContainer">
+          </div>
           <div id='messageBox'>
           </div>
         </div>

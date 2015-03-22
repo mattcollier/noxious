@@ -207,7 +207,8 @@ app.on('ready', function() {
 
   // Create the browser window.
   mainWindow = new BrowserWindow({width: 900, height: 600});
-  mainWindow.openDevTools();
+//  mainWindow = new BrowserWindow({width: 900, height: 600, 'web-preferences': {'overlay-scrollbars': true}});
+  //mainWindow.openDevTools();
 
   ths.start(false, function () {
     console.log("tor Started!");
@@ -264,7 +265,7 @@ app.on('ready', function() {
       case 'delNickName':
         var contactInfo = contactList.getKey(content.contactAddress);
         contactInfo.nickName='';
-        contactList.addKey(content.contactAddress, contactInfo);          
+        contactList.addKey(content.contactAddress, contactInfo);
     }
   });
 
