@@ -89,7 +89,7 @@ function encrypt(noxCrypto, clearText){
 }
 
 function decrypt(encryptedString){
-    var keySizeBytes = myCrypto.keySize;
+    var keySizeBytes = myCrypto.keySize/8;
     var encryptedBuffer = new Buffer(encryptedString, 'base64');
     var decryptedBuffers = [];
 
@@ -105,7 +105,7 @@ function decrypt(encryptedString){
         var tempBuffer = new Buffer(keySizeBytes);
         encryptedBuffer.copy(tempBuffer, 0, i*keySizeBytes, (i+1)*keySizeBytes);
         //decrypts and stores current chunk
-        var decryptedBuffer = myCrypto.myPrivKey.decrypt(tempBuffer);
+        var decryptedBuffer = myCrypto.myPrivKey.decrypt(tempBuffer, 'base64');
         decryptedBuffers.push(decryptedBuffer);
     }
 
