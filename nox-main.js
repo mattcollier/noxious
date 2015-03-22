@@ -61,7 +61,8 @@ function getContactRequests() {
   });
 }
 
-function encrypt(noxCryto, clearText, keySizeBytes){
+function encrypt(noxCrypto, clearText){
+    var keySizeBytes = noxCrypto.keySize/8;
     var buffer = new Buffer(clearText);
     var maxBufferSize = keySizeBytes - 42; //according to ursa documentation
     var bytesDecrypted = 0;
@@ -87,17 +88,30 @@ function encrypt(noxCryto, clearText, keySizeBytes){
     return Buffer.concat(encryptedBuffersList).toString('base64');
 }
 
-function buildEncryptedMessage(destAddress, msgString) {
-  //var tmpPubKey = contactList.getKey(destAddress).??????????;
-  //var tmpCrypto = new NoxCrypto({'pubPEM': content.pubPEM});
-
+function buildEncryptedMessage(destAddress, msgText) {
+  // TODO should crypto objects be stored in an array for reuse?
+  var tmpPubPEM = contactList.getKey(destAddress).pubPEM;
+  var tmpCrypto = new NoxCrypto({'pubPEM': tmpPubPEM});
+  var msgContent = {};
+  msgContent.type = 'message';
+  msgContent.from = myAddress;
+  msgContent.to = destAddress;
+  msgContent.msgText = msgText;
+  msgObj = {};
+  msgObj.content = msgContent;
+  msgObj.signature = myCrypto.signString(JSON.stringify(msgContent));
+  var encryptedData = encrypt(tmpCrypto, JSON.stringify(msgObj));
+  var encObj = {};
+  encObj.type = "encryptedData";
+  encObj.content = encryptedData;
+  return encObj;
 }
 
-function buildContactRequest(destination) {
+function buildContactRequest(destAddress) {
   var introObj = {};
   introObj.type = 'introduction';
   introObj.from = myAddress;
-  introObj.to = destination;
+  introObj.to = destAddress;
   introObj.pubPEM = myCrypto.pubPEM;
   var signature = myCrypto.signString(JSON.stringify(introObj));
   var msgObj = {};
@@ -177,9 +191,9 @@ function registerContactRequest(req) {
 function processMessage(msg) {
   msgObj = JSON.parse(msg);
   var content = msgObj.content;
-  var signature = msgObj.signature;
   switch (content.type) {
     case 'introduction':
+      var signature = msgObj.signature;
       tmpCrypto = new NoxCrypto({'pubPEM': content.pubPEM});
       if (tmpCrypto.signatureVerified(JSON.stringify(content), signature)) {
         console.log('Introduction is properly signed.');
@@ -193,6 +207,9 @@ function processMessage(msg) {
       } else {
         console.log('Introduction is NOT properly signed.  Disregarding.');
       }
+      break;
+    case 'encryptedData':
+      console.log(content.encryptedData);
       break;
   }
 }
@@ -262,6 +279,8 @@ app.on('ready', function() {
     console.log('[message event] ', content);
     switch (content.type) {
       case 'sendEncrypted':
+        var encObj = buildEncryptedMessage(content.destAddress, content.msgText);
+        myNoxClient.transmitObject(content.destAddress, encObj)
         break;
     }
   });
