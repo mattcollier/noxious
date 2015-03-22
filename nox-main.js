@@ -88,8 +88,8 @@ function encrypt(noxCryto, clearText, keySizeBytes){
 }
 
 function buildEncryptedMessage(destAddress, msgString) {
-  var tmpPubKey = contactList.getKey(destAddress).??????????;
-  var tmpCrypto = new NoxCrypto({'pubPEM': content.pubPEM});
+  //var tmpPubKey = contactList.getKey(destAddress).??????????;
+  //var tmpCrypto = new NoxCrypto({'pubPEM': content.pubPEM});
 
 }
 
@@ -151,7 +151,7 @@ function registerContactRequest(req) {
   // TODO is a date/time wanted or needed here? Other Data?
   // this same data structure is copied to the contact list upon acceptance.
   var tmpObj = {};
-  tmpObj.pubPEM = req.pubPEM;
+  tmpObj.pubPEM = req.pubPEM  ;
   tmpObj.contactAddress = req.from;
   // check for dups in requests list and contact list
   if(contactRequestList.getKey(req.from) === undefined && contactList.getKey(req.from) === undefined) {
