@@ -212,6 +212,13 @@
         $('#' + textInputID).focus();
       });
 
+      function updateDisplayName(contactAddress, displayName) {
+        $('#contact_' + contactAddress).data('displayname', displayName);
+        if (activeChatAddress == contactAddress) {
+          $('#chatHeader').html(displayName);
+        }
+      }
+
       function processNickName(textInput) {
         var realAddress = $(textInput).closest('div.contact').data('realaddress');
         var currentValue = $(textInput).data('currentvalue');
@@ -221,7 +228,7 @@
         if (nickName === '~' && isNickName) {
           // remove nickname
           $(textInput).closest('span.contactAddress').html(realAddress);
-          $('#contact_' + realAddress).data('displayname', realAddress);
+          updateDisplayName(realAddress, realAddress);
           var msgObj = {};
           msgObj.method = 'contact';
           msgObj.content = {type: 'delNickName', contactAddress: realAddress+'.onion'};
@@ -230,7 +237,7 @@
           $(textInput).closest('span.contactAddress').html(currentValue);
         } else {
           $(textInput).closest('span.contactAddress').html(nickName);
-          $('#contact_' + realAddress).data('displayname', nickName);
+          updateDisplayName(realAddress, nickName);
           var msgObj = {};
           msgObj.method = 'contact';
           msgObj.content = {type: 'setNickName', contactAddress: realAddress+'.onion', nickName: nickName};
