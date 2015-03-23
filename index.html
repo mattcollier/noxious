@@ -71,8 +71,8 @@
             var contactAddress = Object.create(torAddress);
             contactAddress.fullAddress = msg.from;
             var chatText = msg.msgText;
-            if($('#chatContainer_' + contactAddress).length == 0) {
-              genChatContainer(contactAddress);
+            if($('#chatContainer_' + contactAddress.address).length == 0) {
+              genChatContainer(contactAddress.address);
             }
             postChat(contactAddress.address, contactAddress.address, chatText);
             break;
