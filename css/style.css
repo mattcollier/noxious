@@ -167,3 +167,11 @@ body,html {
   padding:0px;
   margin: 0px;
 }
+
+.chatName {
+  font-weight: bold;
+}
+
+.chatTextSpan {
+  padding-left: 10px;
+}

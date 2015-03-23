@@ -218,7 +218,7 @@ function processMessage(msg) {
   switch (content.type) {
     case 'introduction':
       var signature = msgObj.signature;
-      tmpCrypto = new NoxCrypto({'pubPEM': content.pubPEM});
+      var tmpCrypto = new NoxCrypto({'pubPEM': content.pubPEM});
       if (tmpCrypto.signatureVerified(JSON.stringify(content), signature)) {
         console.log('Introduction is properly signed.');
         // TODO enhance from address checking, for now, not null or undefined, and not myAddress
@@ -234,7 +234,26 @@ function processMessage(msg) {
       break;
     case 'encryptedData':
       console.log('Encrypted Data: ', content.data);
-      console.log('Decrypted Data: ', decrypt(content.data));
+      var decObj = JSON.parse(decrypt(content.data));
+      console.log('Decrypted Data: ', decObj);
+      var content = decObj.content;
+      var signature = decObj.signature;
+      switch (content.type) {
+        case 'message':
+          var tmpCrypto = new NoxCrypto({'pubPEM': contactList.getKey(content.from).pubPEM});
+          if (tmpCrypto.signatureVerified(JSON.stringify(content), signature)) {
+            console.log('[process message] Message is properly signed.');
+            if (content.to==myAddress && content.from!==undefined && content.from && content.from!==myAddress) {
+              console.log('[process message] Message is properly addressed.');
+              var msgObj = {};
+              msgObj.method = 'message';
+              msgObj.content = { type:'onionAddress', content: myAddress };
+              notifyGUI(msgObj);              // pig
+            }
+          } else {
+            console.log('[process message] Message is NOT properly signed.  Disregarding.');
+          }
+      }
       break;
   }
 }

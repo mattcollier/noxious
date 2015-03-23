@@ -14,6 +14,7 @@
       require('./node_modules/bootstrap/dist/js/bootstrap.min.js');
       var activeChatAddress = '';
       var messageCounter = 0;
+      var myAddress = '';
 
       var ipc = require('ipc');
       console.log(ipc.sendSync('synchronous-message', 'ping')); // prints "pong"
@@ -43,9 +44,11 @@
       ipc.on('status', function(msg) {
         switch (msg.type) {
           case 'onionAddress':
-            var chatID = Object.create(torAddress);
-            chatID.fullAddress = msg.content;
-            $('#chatID').replaceWith(chatID.address);
+            var chatId = Object.create(torAddress);
+            chatId.fullAddress = msg.content;
+            // global
+            myAddress = chatId.address;
+            $('#chatID').replaceWith(myAddress);
             break;
         }
       });
@@ -61,6 +64,20 @@
         console.log('reqCode: ', reqCode);
         return reqCode;
       }
+
+      ipc.on('message', function(msg){
+        switch (msg.type) {
+          case 'message':
+            var contactAddress = Object.create(torAddress);
+            contactAddress.fullAddress = msg.from;
+            var chatText = msg.msgText;
+            if($('#chatContainer_' + contactAddress).length == 0) {
+              genChatContainer(contactAddress);
+            }
+            postChat(contactAddress.address, contactAddress.address, chatText);
+            break;
+        }
+      });
 
       ipc.on('contact', function(msg) {
         switch (msg.type) {
@@ -116,29 +133,33 @@
         }
       });
 
+      function genChatContainer(contactAddress) {
+        var chatContainerId = 'chatContainer_' + contactAddress;
+        var containerHTML = '<div id="' + chatContainerId + '" class="hiddenChat specificChatContainer"> \
+          <div id="chatContent_' + contactAddress + '" class="chatContent"> \
+          </div> \
+          <div id="chatInputDiv_' + contactAddress + '" class="chatInputDiv"> \
+            <input id="chatInput_' + contactAddress + '" type="text" class="chatInput" \
+            data-realaddress="' + contactAddress + '"> \
+          </div> \
+          </div>';
+        $('#chatContainer').append(containerHTML);
+      }
+
       $(document).on('click','.contact',function() {
         var contactAddress = $(this).data('realaddress');
         var displayName = $(this).data('displayname');
-        var chatContainerID = 'chatContainer_' + contactAddress;
-        var activeChatContainerID = 'chatContainer_' + activeChatAddress;
+        var chatContainerId = 'chatContainer_' + contactAddress;
+        var activeChatContainerId = 'chatContainer_' + activeChatAddress;
         if($('#chatContainer_' + contactAddress).length == 0) {
-          // container needs to be created.
-          var containerHTML = '<div id="' + chatContainerID + '" class="hiddenChat specificChatContainer"> \
-            <div id="chatContent_' + contactAddress + '" class="chatContent"> \
-            </div> \
-            <div id="chatInputDiv_' + contactAddress + '" class="chatInputDiv"> \
-              <input id="chatInput_' + contactAddress + '" type="text" class="chatInput" \
-              data-realaddress="' + contactAddress + '"> \
-            </div> \
-            </div>';
-          $('#chatContainer').append(containerHTML);
-          $('#chatContainer').css('height', $(window).height() - 80);
-          $('#' + activeChatContainerID).toggleClass('hiddenChat');
-          $('#' + chatContainerID).toggleClass('hiddenChat');
+          // container needs to be created
+          genChatContainer(contactAddress);
+          $('#' + activeChatContainerId).toggleClass('hiddenChat');
+          $('#' + chatContainerId).toggleClass('hiddenChat');
         } else {
           // it already exists, just show it
-          $('#' + activeChatContainerID).toggleClass('hiddenChat');
-          $('#' + chatContainerID).toggleClass('hiddenChat');
+          $('#' + activeChatContainerId).toggleClass('hiddenChat');
+          $('#' + chatContainerId).toggleClass('hiddenChat');
         }
         $('#chatInput_' + contactAddress).focus();
         activeChatAddress = contactAddress;
@@ -158,18 +179,30 @@
         notifyAtom(msgObj);
       }
 
-      $(document).on('keydown', '.chatInput', function(e) {
-        contactAddress = $(this).data('realaddress');
+      function postChat(contactAddress, authorAddress, chatText) {
+        var messageId = 'message_' + messageCounter++;
         var chatContentId = 'chatContent_' + contactAddress;
-        var messageId = '';
-        chatText = $(this).val();
+        var displayName = '';
+        if (authorAddress == myAddress) {
+          displayName = 'me';
+        } else {
+          displayName = (contactList.getKey(contactAddress+'.onion').nickName) ? contactList.getKey(contactAddress+'.onion').nickName : contactAddress;
+        }
+        displayName = displayName + ':';
+        var chatHTML = '<div id="' + messageId + '" class="chatTextDiv"> \
+        <span class="chatName">' + displayName + '</span><span class="chatTextSpan">' + chatText + '</span></div>';
+        $('#' + chatContentId).append(chatHTML);
+        scrollToBottom($('#' + chatContentId));
+        return messageId;
+      }
+
+      $(document).on('keydown', '.chatInput', function(e) {
         if(e.keyCode == 13) {
-          messageId = 'message_' + messageCounter++;
-          var chatHTML = '<div id="' + messageId + '" class="chatText"><strong>me: </strong>' + chatText + '</div>';
-          $('#' + chatContentId).append(chatHTML);
-          scrollToBottom($('#' + chatContentId));
-          $(this).val('');
+          var contactAddress = $(this).data('realaddress');
+          var chatText = $(this).val();
+          var messageId = postChat(contactAddress, myAddress, chatText);
           sendMessage(contactAddress, chatText, messageId);
+          $(this).val('');
         }
       });
 
@@ -281,6 +314,8 @@
       }).resize();
 
       $(document).ready(function() {
+        // set chat window height based on the window size
+        $('#chatContainer').css('height', $(window).height() - 80);
         // Add Contact
         $('#addContactButton').click(function () {
           $('#newContactFormContainer').slideDown('fast');
