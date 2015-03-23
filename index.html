@@ -186,7 +186,7 @@
         if (authorAddress == myAddress) {
           displayName = 'me';
         } else {
-          displayName = (contactList.getKey(contactAddress+'.onion').nickName) ? contactList.getKey(contactAddress+'.onion').nickName : contactAddress;
+          displayName = $('#contact_' + contactAddress).data('displayname');
         }
         displayName = displayName + ':';
         var chatHTML = '<div id="' + messageId + '" class="chatTextDiv"> \
