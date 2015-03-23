@@ -214,6 +214,7 @@ function registerContactRequest(req) {
 
 function processMessage(msg) {
   msgObj = JSON.parse(msg);
+  console.log('[process message] ', msgObj);
   var content = msgObj.content;
   switch (content.type) {
     case 'introduction':
@@ -248,7 +249,7 @@ function processMessage(msg) {
               var msgObj = {};
               msgObj.method = 'message';
               msgObj.content = { type:'message', from: content.from, msgText: content.msgText };
-              notifyGUI(msgObj);        
+              notifyGUI(msgObj);
             }
           } else {
             console.log('[process message] Message is NOT properly signed.  Disregarding.');
