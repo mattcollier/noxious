@@ -247,8 +247,8 @@ function processMessage(msg) {
               console.log('[process message] Message is properly addressed.');
               var msgObj = {};
               msgObj.method = 'message';
-              msgObj.content = { type:'onionAddress', content: myAddress };
-              notifyGUI(msgObj);              // pig
+              msgObj.content = { type:'message', from: content.from, msgText: content.msgText };
+              notifyGUI(msgObj);        
             }
           } else {
             console.log('[process message] Message is NOT properly signed.  Disregarding.');
