@@ -175,3 +175,7 @@ body,html {
 .chatTextSpan {
   padding-left: 10px;
 }
+
+.messageNotification {
+  color: #FF3300;
+}

@@ -74,7 +74,13 @@
             if($('#chatContainer_' + contactAddress.address).length == 0) {
               genChatContainer(contactAddress.address);
             }
+            // updates the chat content, but does not force display
             postChat(contactAddress.address, contactAddress.address, chatText);
+            // message notification on contact list
+            if (activeChatAddress !== contactAddress.address) {
+              // set notifications
+              $('#notification_' + contactAddress.address).addClass('messageNotification');
+            }
             break;
         }
       });
@@ -105,7 +111,7 @@
               data-displayname="' + displayName + '" \
               data-isnickname="' + isNickName + '" \
               class="contact"> \
-              <span class="glyphicon glyphicon-user" aria-hidden="true"></span> \
+              <span id="notification_' + contactAddress.address + '" class="glyphicon glyphicon-user" aria-hidden="true"></span> \
               <span id="addressSpan_' + contactAddress.address + '" class="contactAddress" \
               >' + displayName + '</span> \
               <span class="editContactButton glyphicon glyphicon-edit" aria-hidden="true"></span> \
@@ -164,6 +170,7 @@
         $('#chatInput_' + contactAddress).focus();
         activeChatAddress = contactAddress;
         $('#chatHeader').html(displayName);
+        $('#notification_' + contactAddress).removeClass('messageNotification');
       });
 
       function scrollToBottom (element) {
