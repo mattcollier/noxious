@@ -20,9 +20,42 @@ The current version has been tested on 32bit and 64bit version of Debian Linux.
 #####Build Instructions
 ######OS Dependencies
 ```
-apt-get install tor build-essential libssl-dev
+apt-get install tor build-essential libssl-dev git
 ```
-
+######io.js
+[Get io.js here.](https://iojs.org/en/index.html), and you can install it based on
+[these instructions](http://jonathanmh.com/installing-io-js-ubuntu-digital-ocean-droplet/). npm, node package
+manager will be included with the other io.js binaries.
+######npm
+Once you have a working npm installation, **as root**, installing the following modules globally with the following commands:
+```
+npm install node-gyp -g
+npm install atom-shell -g
+######Clone and build
+Next, as a **regular user**, clone this repository into the folder of your choice:
+```
+git clone https://github.com/mattcollier/noxious.git
+cd noxious
+npm install
+```
+The 'npm install' command will download all the required dependencies.
+#####Rebuild the native modules
+from inside the noxious folder, run the build script appropriate for your OS.
+OS        | Script Name
+--------- | -----------
+Linux 64  | build_x64.sh
+Linux 32  | build_ia32.sh
+OSX       | build_darwin.sh
+At the end of the script execution, you should see 'gyp info ok'.
+#####Run noxious
+From the parent folder of noxious do:
+```
+atom-shell noxious
+```
+You should see the GUI appear.  Within 30 seconds or so, you should see your 'Chat ID'
+appear next to the asterisk (*) in the upper left hand corner of the window.  You may now
+provide your ID to another noxious user who can add you as a contact which initiates a 'contact
+request' process which facilitates the exchange of public keys.
 
 ####OSX
 The current version has been tested on OSX
