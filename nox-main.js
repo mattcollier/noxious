@@ -272,19 +272,28 @@ function startHiddenService() {
   if (noxiousProperties==0) {
     // does not exist, create it
     console.log('Creating new noxious service');
-    ths.createHiddenService('noxious','1111', true);
-  } else {
-    // TODO does not work propery on initial startup: https://github.com/Mowje/node-ths/issues/3
-    ths.getOnionAddress('noxious', function(err, onionAddress) {
-      if(!err) {
-        myAddress = onionAddress;
-        var msgObj = {};
-        msgObj.method = 'status';
-        msgObj.content = { type:'onionAddress', content: myAddress };
-        notifyGUI(msgObj);
-      }
-    });
+    ths.createHiddenService('noxious','1111');
+    ths.saveConfig();
+    // Why this?  https://github.com/Mowje/node-ths/issues/5
+    var myDelegate = function() {
+      ths.signalReload();
+    }
+    var myVar = setTimeout(myDelegate, 250);
   }
+  // TODO does not work propery on initial startup: https://github.com/Mowje/node-ths/issues/3
+  ths.getOnionAddress('noxious', function(err, onionAddress) {
+    if(err) {
+      console.error('[getOnionAddress] Error while reading hostname file: ' + err);
+    }
+    else {
+      console.log('[getOnionAddress] Onion Address is: ', onionAddress);
+      myAddress = onionAddress;
+      var msgObj = {};
+      msgObj.method = 'status';
+      msgObj.content = { type:'onionAddress', content: myAddress };
+      notifyGUI(msgObj);
+    }
+  });
 }
 
 // Quit when all windows are closed.
