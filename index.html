@@ -318,6 +318,12 @@
         msgObj.method = 'contact';
         msgObj.content = {type: 'delContact', contactAddress: contactAddress+'.onion'};
         notifyAtom(msgObj);
+        if($('#chatContainer_' + contactAddress).length !== 0) {
+          if(activeChatAddress == contactAddress) {
+            setActiveChat(systemMessagesAddress, systemMessagesDisplay);
+            $('#chatContainer_' + contactAddress).remove();
+          }
+        }
       });
 
       function updateDisplayName(contactAddress, displayName) {
