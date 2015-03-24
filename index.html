@@ -134,7 +134,8 @@
               <span id="notification_' + contactAddress.address + '" class="glyphicon glyphicon-user" aria-hidden="true"></span> \
               <span id="addressSpan_' + contactAddress.address + '" class="contactAddress" \
               >' + displayName + '</span> \
-              <span class="editContactButton glyphicon glyphicon-edit" aria-hidden="true"></span> \
+              <span class="deleteContactIcon glyphicon glyphicon-remove" aria-hidden="true"></span> \
+              <span class="editContactIcon glyphicon glyphicon-edit" aria-hidden="true"></span> \
               </div>';
               $('#contactList').append(contactCode);
             }
@@ -299,7 +300,7 @@
         removeContactRequest(contactAddress);
       });
 
-      $(document).on('click','.editContactButton', function(e) {
+      $(document).on('click','.editContactIcon', function(e) {
         e.stopPropagation();
         var contactAddress = $(this).closest('div.contact').data('realaddress');
         var currentValue = $('#addressSpan_'+contactAddress).html();
@@ -308,6 +309,15 @@
         data-currentvalue="' + currentValue + '" placeholder="nickname">';
         $('#addressSpan_'+contactAddress).html(textInputHTML);
         $('#' + textInputID).focus();
+      });
+
+      $(document).on('click','.deleteContactIcon', function(e) {
+        e.stopPropagation();
+        var contactAddress = $(this).closest('div.contact').data('realaddress');
+        var msgObj = {};
+        msgObj.method = 'contact';
+        msgObj.content = {type: 'delContact', contactAddress: contactAddress+'.onion'};
+        notifyAtom(msgObj);
       });
 
       function updateDisplayName(contactAddress, displayName) {

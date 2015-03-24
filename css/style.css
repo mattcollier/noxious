@@ -101,8 +101,20 @@ body,html {
   cursor: pointer;
 }
 
-.contact:hover .editContactButton {
+.contact:hover .editContactIcon, .contact:hover .deleteContactIcon {
   visibility: visible;
+}
+
+.deleteContactIcon {
+  float: right;
+  padding-right: 3px;
+  visibility: hidden;
+}
+
+.editContactIcon {
+  float: right;
+  padding-right: 5px;
+  visibility: hidden;
 }
 
 .contactAddress {
@@ -126,13 +138,8 @@ body,html {
   padding-right: 10px;
 }
 
-.editContactButton {
-  float: right;
-  visibility: hidden;
-}
-
 .nickTextInput {
-  width: 75%;
+  width: 65%;
   padding: 0px;
 }
 

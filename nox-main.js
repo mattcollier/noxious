@@ -398,6 +398,10 @@ app.on('ready', function() {
         contactInfo.nickName='';
         contactList.addKey(content.contactAddress, contactInfo);
         break;
+      case 'delContact':
+        contactList.delKey(content.contactAddress);
+        getContacts();        
+        break;
     }
   });
 

@@ -39,13 +39,11 @@ NoxClient.prototype.transmitObject = function (destAddress, msg, cb) {
       body += d;
     });
     res.on('end', function() {
-      console.log('Status: ', res.statusCode);
-      console.log(res.statusCode, res.headers);
-      console.log(body);
+      console.log('[noxclient transmitObject] HTTP Status: ', res.statusCode);
+      //console.log(res.statusCode, res.headers);
+      //console.log(body);
       if (res.statusCode === 200) {
-        console.log('Status is an Integer');
         if(cb && typeof(cb) == 'function') {
-          console.log('calling callback', cb);
           cb();
         }
       }
