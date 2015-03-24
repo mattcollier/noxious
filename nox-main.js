@@ -209,6 +209,8 @@ function registerContactRequest(req) {
     // TODO fancy GUI work goes here, for now, just reinit both lists
     getContacts();
     getContactRequests();
+  } else if(contactRequestList.getKey(req.from)) {
+    console.log('[contact] Contact request is from an existing contact.');
   }
 }
 
@@ -221,16 +223,15 @@ function processMessage(msg) {
       var signature = msgObj.signature;
       var tmpCrypto = new NoxCrypto({'pubPEM': content.pubPEM});
       if (tmpCrypto.signatureVerified(JSON.stringify(content), signature)) {
-        console.log('Introduction is properly signed.');
+        console.log('[process message] Introduction is properly signed.');
         // TODO enhance from address checking, for now, not null or undefined, and not myAddress
         if (content.to==myAddress && content.from!==undefined && content.from && content.from!==myAddress) {
-          // content.to is part of the signed content.
-          console.log('Introduction is properly addressed.');
-          // Contact request is valid, register it, TODO check for dups?
+          // content.to and content.from are part of the signed content.
+          console.log('[process message] Introduction is properly addressed.');
           registerContactRequest(content);
         }
       } else {
-        console.log('Introduction is NOT properly signed.  Disregarding.');
+        console.log('[process message] Introduction is NOT properly signed.  Disregarding.');
       }
       break;
     case 'encryptedData':
@@ -341,18 +342,29 @@ app.on('ready', function() {
 
   ipc.on('contact', function(event, content) {
     console.log('[contact event] ', content);
+    function updateRequestStatus(contactAddress, status) {
+      var tmpContact = contactRequestList.getKey(contactAddress);
+      tmpContact.status=status;
+      contactRequestList.addKey(contactAddress, tmpContact);
+      getContactRequests();
+    }
     switch (content.type) {
       case 'acceptContactRequest':
         // user has chosen to accept the contact request
         // send a contact request to sender to provide pubKey
         // TODO transmitObject should have a callback that triggers only on successful delivery of Message
-        myNoxClient.transmitObject(content.contactAddress, buildContactRequest(content.contactAddress));
-        // pull the info from the contactRequestList and make a new conact.
-        contactList.addKey(content.contactAddress, contactRequestList.getKey(content.contactAddress));
-        // remove the contact request and save
-        contactRequestList.delKey(content.contactAddress);
-        // for now, just reinit the contact list
-        getContacts();
+        updateRequestStatus(content.contactAddress, 'sending');
+        myNoxClient.transmitObject(content.contactAddress, buildContactRequest(content.contactAddress), function(err) {
+          if(!err) {
+            // pull the info from the contactRequestList and make a new conact.
+            contactList.addKey(content.contactAddress, contactRequestList.getKey(content.contactAddress));
+            // remove the contact request and save
+            contactRequestList.delKey(content.contactAddress);
+            // for now, just reinit the contact lists
+            getContacts();
+            getContactRequests();
+          }
+        });
         break;
       case 'delContactRequest':
         contactRequestList.delKey(content.contactAddress);
@@ -366,18 +378,9 @@ app.on('ready', function() {
         // do not send request to myAddress
         // TODO display error message if to=myAddress, for now, discard
         if(content.contactAddress!==myAddress) {
-          function updateRequestStatus() {
-            var tmpContact = contactRequestList.getKey(contactAddress);
-            tmpContact.status='delivered';
-            contactRequestList.addKey(contactAddress, tmpContact);
-            getContactRequests();
-          }
           // TODO need callback here
           myNoxClient.transmitObject(content.contactAddress, buildContactRequest(content.contactAddress), function(err) {
-            //calback function
-            if(!err) {
-              console.log('[transmit callback] Contact Address: ', content.contactAddress);
-            }
+            updateRequestStatus(content.contactAddress, 'delivered');
           });
           var contactRequest = { contactAddress: content.contactAddress, direction: 'outgoing', status: 'sending' };
           contactRequestList.addKey(content.contactAddress, contactRequest);
