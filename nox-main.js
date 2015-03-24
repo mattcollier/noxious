@@ -311,7 +311,7 @@ app.on('ready', function() {
   // Create the browser window.
   mainWindow = new BrowserWindow({width: 900, height: 600});
 //  mainWindow = new BrowserWindow({width: 900, height: 600, 'web-preferences': {'overlay-scrollbars': true}});
-  mainWindow.openDevTools();
+//  mainWindow.openDevTools();
 
   ths.start(false, function () {
     console.log("tor Started!");

@@ -252,13 +252,13 @@
         if($('#reqInfo_' + contactAddress).length == 0) {
           var requestInfoHTML = '';
           if(direction == 'incoming') {
-            requestInfoHTML = '<div id="reqInfo_' + contactAddress + '"><strong>' + contactAddress + '</strong> would like to add you on Noxious</div> \
+            requestInfoHTML = '<div id="reqInfo_' + contactAddress + '" class="requestInfo"><strong>' + contactAddress + '</strong> would like to add you on Noxious \
               <div id="requestButtons_' + contactAddress + '"><button id="accept_' + contactAddress + '" \
               class="btn-success requestChoiceButton" data-choice="acceptContactRequest" \
               data-description="Accepted.">Accept</button> or \
               <button id="decline_' + contactAddress + '" class="btn-danger requestChoiceButton" \
               data-choice="declineContactRequest" data-description="Declined."> \
-              Decline</button></div>';
+              Decline</button></div></div>';
           } else {
             requestInfoHTML = '<div id="reqInfo_' + contactAddress + '">You sent a contact request \
               to <strong>' + contactAddress + '</strong> but there has been no response.';
@@ -286,7 +286,15 @@
         notifyAtom(msgObj);
         // TODO If a request is declined, what happens if another request from same arrives
         // currently the display of info would be blocked
-        $('#requestButtons_' + contactAddress).replaceWith(description);
+        $('#requestButtons_' + contactAddress).html(description);
+        function removeReqInfo(contactAddress) {
+          $('#reqInfo_' + contactAddress).fadeOut(2000, function() {
+            $(this).remove();
+          });
+        }
+        setTimeout(function() {
+          removeReqInfo(contactAddress);
+        }, 5000);
       });
 
       $(document).on('click','.deleteRequestIcon', function(e) {
