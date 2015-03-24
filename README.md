@@ -42,11 +42,13 @@ npm install
 The 'npm install' command will download all the required dependencies.
 #####Rebuild the native modules
 from inside the noxious folder, run the build script appropriate for your OS.
+
 OS        | Script Name
 --------- | -----------
 Linux 64  | build_x64.sh
 Linux 32  | build_ia32.sh
 OSX       | build_darwin.sh
+
 At the end of the script execution, you should see 'gyp info ok'.
 #####Run noxious
 From the parent folder of noxious do:
