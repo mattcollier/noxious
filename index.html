@@ -155,22 +155,11 @@
       $(document).on('click','.contact',function() {
         var contactAddress = $(this).data('realaddress');
         var displayName = $(this).data('displayname');
-        var chatContainerId = 'chatContainer_' + contactAddress;
-        var activeChatContainerId = 'chatContainer_' + activeChatAddress;
         if($('#chatContainer_' + contactAddress).length == 0) {
           // container needs to be created
           genChatContainer(contactAddress);
-          $('#' + activeChatContainerId).toggleClass('hiddenChat');
-          $('#' + chatContainerId).toggleClass('hiddenChat');
-        } else {
-          // it already exists, just show it
-          $('#' + activeChatContainerId).toggleClass('hiddenChat');
-          $('#' + chatContainerId).toggleClass('hiddenChat');
         }
-        $('#chatInput_' + contactAddress).focus();
-        activeChatAddress = contactAddress;
-        $('#chatHeader').html(displayName);
-        $('#notification_' + contactAddress).removeClass('messageNotification');
+        setActiveChat(contactAddress, displayName);
       });
 
       function scrollToBottom (element) {
@@ -184,6 +173,23 @@
         msgObj.method = 'message';
         msgObj.content = {type: 'sendEncrypted', destAddress: destAddress, msgText: msgText, msgId: msgId};
         notifyAtom(msgObj);
+      }
+
+      function setActiveChat(contactAddress, displayName) {
+        if(activeChatAddress !== contactAddress) {
+          var chatContainerId = 'chatContainer_' + contactAddress;
+          var activeChatContainerId = 'chatContainer_' + activeChatAddress;
+          activeChatAddress = contactAddress;
+          $('#' + activeChatContainerId).addClass('hiddenChat');
+          $('#' + chatContainerId).removeClass('hiddenChat');
+          $('#chatHeader').html(displayName);
+          if(contactAddress=='systemMessage') {
+            // do something?
+          } else {
+            $('#chatInput_' + contactAddress).focus();
+            $('#notification_' + contactAddress).removeClass('messageNotification');
+          }
+        }
       }
 
       function postChat(contactAddress, authorAddress, chatText) {
@@ -231,7 +237,7 @@
             requestInfoHTML = '<div id="reqInfo_' + contactAddress + '">You sent a contact request \
               to <strong>' + contactAddress + '</strong> but there has been no response.';
           }
-          $('#messageBox').append(requestInfoHTML);
+          $('#chatContent_systemMessages').append(requestInfoHTML);
         }
       });
 
@@ -323,6 +329,9 @@
       $(document).ready(function() {
         // set chat window height based on the window size
         $('#chatContainer').css('height', $(window).height() - 80);
+        // Create container for system messages
+        genChatContainer('systemMessages');
+        setActiveChat('systemMessage', 'System Messages');
         // Add Contact
         $('#addContactButton').click(function () {
           $('#newContactFormContainer').slideDown('fast');
