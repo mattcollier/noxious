@@ -51,14 +51,32 @@
         }
       });
 
-      function genContactRequestHTML(contactAddress) {
-        var reqCode = '<div id="request_' + contactAddress.address + '" class="pendingContactRequest" data-direction="' + contactAddress.direction + '">'
-        if(contactAddress.direction == 'incoming') {
-          reqCode = reqCode + '<span data-tip="incoming request" class="requestIcon glyphicon glyphicon-log-in" aria-hidden="true"></span>';
+      function genContactRequestHTML(contactRequest) {
+        // contactRequest is a torAddress object plus .direction and .status
+        var reqCode = '<div id="request_' + contactRequest.address + '" class="pendingContactRequest" \
+          data-realaddress="' + contactRequest.address + '" \
+          data-direction="' + contactRequest.direction + '">'
+        if(contactRequest.direction == 'incoming') {
+          reqCode = reqCode + '<span data-tip="incoming request" \
+            class="requestIcon glyphicon glyphicon-log-in" aria-hidden="true"></span>';
         } else {
-          reqCode = reqCode + '<span data-tip="outgoing request" class="requestIcon glyphicon glyphicon-log-out" aria-hidden="true"></span>';
+          reqCode = reqCode + '<span data-tip="outgoing request" \
+            class="requestIcon glyphicon glyphicon-log-out" aria-hidden="true"></span>';
         }
-        reqCode = reqCode + '<span class="contactAddress">' + contactAddress.address + '</span></div>';
+        reqCode = reqCode + '<span class="contactAddress">' + contactRequest.address + '</span> \
+          <span data-tip="delete request" \
+          class="deleteRequestIcon glyphicon glyphicon-remove" aria-hidden="true"></span>';
+        switch (contactRequest.status) {
+          case 'delivered':
+            reqCode = reqCode + '<span data-tip="delivered" \
+              class="requestStatusIcon glyphicon glyphicon glyphicon glyphicon-ok" aria-hidden="true"></span>';
+            break;
+          case 'sending':
+            reqCode = reqCode + '<span data-tip="sending" \
+              class="requestStatusIcon glyphicon glyphicon glyphicon-transfer" aria-hidden="true"></span>';
+            break;
+        }
+        reqCode = reqCode + '</div>';
         return reqCode;
       }
 
@@ -89,10 +107,11 @@
       ipc.on('contact', function(msg) {
         switch (msg.type) {
           case 'contactRequest':
-            var contactAddress = Object.create(torAddress);
-            contactAddress.fullAddress = msg.from;
-            contactAddress.direction = msg.direction;
-            $('#contactRequestList').append(genContactRequestHTML(contactAddress));
+            var contactRequest = Object.create(torAddress);
+            contactRequest.fullAddress = msg.from;
+            contactRequest.direction = msg.direction;
+            contactRequest.status = msg.status;
+            $('#contactRequestList').append(genContactRequestHTML(contactRequest));
             $('#contactRequestContainer').slideDown(400);
             break;
           case 'initContactList':
@@ -125,10 +144,11 @@
             var contactRequestList = msg.contactRequestList;
             var reqArray = Object.keys(contactRequestList).map(function(key){ return contactRequestList[key]; });
             for (reqIndex in reqArray) {
-              var requestAddress = Object.create(torAddress);
-              requestAddress.fullAddress = reqArray[reqIndex].contactAddress;
-              requestAddress.direction = reqArray[reqIndex].direction;
-              $('#contactRequestList').append(genContactRequestHTML(requestAddress));
+              var contactRequest = Object.create(torAddress);
+              contactRequest.fullAddress = reqArray[reqIndex].contactAddress;
+              contactRequest.direction = reqArray[reqIndex].direction;
+              contactRequest.status = reqArray[reqIndex].status;
+              $('#contactRequestList').append(genContactRequestHTML(contactRequest));
             }
             $('#contactRequestContainer').slideDown(400);
             break;
@@ -191,7 +211,7 @@
             $('#notification_' + contactAddress).removeClass('messageNotification');
             if(notifications[contactAddress] !== undefined) {
               clearInterval(notifications[contactAddress]);
-              $('#notification_' + contactAddress).fadeTo('fast', 1.0);              
+              $('#notification_' + contactAddress).fadeTo('fast', 1.0);
             }
           }
         }
@@ -247,6 +267,14 @@
         }
       });
 
+      function removeContactRequest(contactAddress) {
+        $('#request_' + contactAddress).remove();
+        // if there are no other requests, hide container
+        if($('#contactRequestList').children().length == 0) {
+          $('#contactRequestContainer').slideUp(400);
+        }
+      }
+
       $(document).on('click','.requestChoiceButton', function() {
         var contactAddress = this.id.split('_')[1];
         var choice = $(this).data('choice');
@@ -258,11 +286,17 @@
         // TODO If a request is declined, what happens if another request from same arrives
         // currently the display of info would be blocked
         $('#requestButtons_' + contactAddress).replaceWith(description);
-        $('#request_' + contactAddress).remove();
-        // if there are no other requests, hide container
-        if($('#contactRequestList').children().length == 0) {
-          $('#contactRequestContainer').slideUp(400);
-        }
+      });
+
+      $(document).on('click','.deleteRequestIcon', function(e) {
+        // TODO confirm request?
+        e.stopPropagation();
+        var contactAddress = $(this).closest('div.pendingContactRequest').data('realaddress');
+        var msgObj = {};
+        msgObj.method = 'contact';
+        msgObj.content = {type: 'delContactRequest', contactAddress: contactAddress+'.onion'};
+        notifyAtom(msgObj);
+        removeContactRequest(contactAddress);
       });
 
       $(document).on('click','.editContactButton', function(e) {

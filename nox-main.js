@@ -201,7 +201,7 @@ function registerContactRequest(req) {
     msgObj.method = 'contact';
     msgObj.content = { type: 'contactRequest', from: req.from, direction: 'incoming' };
     notifyGUI(msgObj);
-  } else if (contactRequestList.getKey(req.from).direction == 'outgoing') {
+  } else if (contactRequestList.getKey(req.from) && contactRequestList.getKey(req.from).direction == 'outgoing') {
     // this person accepted a contact request
     console.log('[contact] Contact Request Accepted');
     contactList.addKey(req.from, tmpObj);
@@ -354,6 +354,9 @@ app.on('ready', function() {
         // for now, just reinit the contact list
         getContacts();
         break;
+      case 'delContactRequest':
+        contactRequestList.delKey(content.contactAddress);
+        break;
       case 'declineContactRequest':
         // TODO Should the sender be notified?
         contactRequestList.delKey(content.contactAddress);
@@ -363,8 +366,20 @@ app.on('ready', function() {
         // do not send request to myAddress
         // TODO display error message if to=myAddress, for now, discard
         if(content.contactAddress!==myAddress) {
-          myNoxClient.transmitObject(content.contactAddress, buildContactRequest(content.contactAddress));
-          var contactRequest = { contactAddress: content.contactAddress, direction: 'outgoing' };
+          function updateRequestStatus() {
+            var tmpContact = contactRequestList.getKey(contactAddress);
+            tmpContact.status='delivered';
+            contactRequestList.addKey(contactAddress, tmpContact);
+            getContactRequests();
+          }
+          // TODO need callback here
+          myNoxClient.transmitObject(content.contactAddress, buildContactRequest(content.contactAddress), function(err) {
+            //calback function
+            if(!err) {
+              console.log('[transmit callback] Contact Address: ', content.contactAddress);
+            }
+          });
+          var contactRequest = { contactAddress: content.contactAddress, direction: 'outgoing', status: 'sending' };
           contactRequestList.addKey(content.contactAddress, contactRequest);
           // reinit the request list
           getContactRequests();

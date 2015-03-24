@@ -13,7 +13,7 @@ function NoxClient () {
   };
 }
 
-NoxClient.prototype.transmitObject = function (destAddress, msg) {
+NoxClient.prototype.transmitObject = function (destAddress, msg, cb) {
 
   postData = JSON.stringify(msg);
   // console.log('Stringified PostData: ', postData);
@@ -41,6 +41,11 @@ NoxClient.prototype.transmitObject = function (destAddress, msg) {
     res.on('end', function() {
       console.log(res.statusCode, res.headers);
       console.log(body);
+      switch(res.statusCode) {
+        case 200:
+          cb;
+          break;
+      }
     });
   });
 
