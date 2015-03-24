@@ -5,6 +5,6 @@ Anonymous
 All communications are conducted between tor hidden services and never leave the tor network.
 See https://www.torproject.org/docs/hidden-services.html.en to learn more about tor hidden services.
 
-Secure
+<h5>Secure</h5>
 In addition to the encryption offered by the tor hidden service protocol, all chat messages are
 public-key encrypted using a 2048 bit key.
