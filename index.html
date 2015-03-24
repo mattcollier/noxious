@@ -17,6 +17,7 @@
       var myAddress = '';
       var systemMessagesAddress = 'systemMessages';
       var systemMessagesDisplay = 'System Messages';
+      var notifications = {};
 
       var ipc = require('ipc');
       console.log(ipc.sendSync('synchronous-message', 'ping')); // prints "pong"
@@ -58,7 +59,6 @@
           reqCode = reqCode + '<span data-tip="outgoing request" class="requestIcon glyphicon glyphicon-log-out" aria-hidden="true"></span>';
         }
         reqCode = reqCode + '<span class="contactAddress">' + contactAddress.address + '</span></div>';
-        console.log('reqCode: ', reqCode);
         return reqCode;
       }
 
@@ -77,6 +77,10 @@
             if (activeChatAddress !== contactAddress.address) {
               // set notifications
               $('#notification_' + contactAddress.address).addClass('messageNotification');
+              function myFlasher() {
+                $('#notification_' + contactAddress.address).fadeTo(850, 0.1).fadeTo(850, 1.0);
+              }
+              notifications[contactAddress.address] = setInterval(myFlasher, 2000);
             }
             break;
         }
@@ -185,6 +189,10 @@
           } else {
             $('#chatInput_' + contactAddress).focus();
             $('#notification_' + contactAddress).removeClass('messageNotification');
+            if(notifications[contactAddress] !== undefined) {
+              clearInterval(notifications[contactAddress]);
+              $('#notification_' + contactAddress).fadeTo('fast', 1.0);              
+            }
           }
         }
       }
