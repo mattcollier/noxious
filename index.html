@@ -15,6 +15,8 @@
       var activeChatAddress = '';
       var messageCounter = 0;
       var myAddress = '';
+      var systemMessagesAddress = 'systemMessages';
+      var systemMessagesDisplay = 'System Messages';
 
       var ipc = require('ipc');
       console.log(ipc.sendSync('synchronous-message', 'ping')); // prints "pong"
@@ -25,11 +27,6 @@
       ipc.send('asynchronous-message', 'ping');
 
       ipc.on('ping', function(message) {
-        console.log(message);
-      });
-
-      ipc.on('msg', function(message) {
-        $("#messageBox").append(message+'<br />');
         console.log(message);
       });
 
@@ -238,6 +235,7 @@
               to <strong>' + contactAddress + '</strong> but there has been no response.';
           }
           $('#chatContent_systemMessages').append(requestInfoHTML);
+          setActiveChat(systemMessagesAddress, systemMessagesDisplay);
         }
       });
 
@@ -330,8 +328,10 @@
         // set chat window height based on the window size
         $('#chatContainer').css('height', $(window).height() - 80);
         // Create container for system messages
-        genChatContainer('systemMessages');
-        setActiveChat('systemMessage', 'System Messages');
+        genChatContainer(systemMessagesAddress);
+        //remove the text input for system messages
+        $('#chatInputDiv_' + systemMessagesAddress).remove();
+        setActiveChat(systemMessagesAddress, systemMessagesDisplay);
         // Add Contact
         $('#addContactButton').click(function () {
           $('#newContactFormContainer').slideDown('fast');
@@ -402,8 +402,6 @@
           <div id="chatHeader" class="chatHeader">
           </div>
           <div id="chatContainer" class="chatContainer">
-          </div>
-          <div id='messageBox'>
           </div>
         </div>
       </div>
