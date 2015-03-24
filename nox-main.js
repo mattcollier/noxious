@@ -33,10 +33,9 @@ function isEmptyObject(obj) {
   return !Object.keys(obj).length;
 }
 
-function getContacts() {
-  // do nothing if contact list is empty
+function getContacts(forceReload) {
   contactList.getContent(function(content) {
-    if (!isEmptyObject(content)) {
+    if (!isEmptyObject(content) || forceReload) {
       var msgObj = {};
       msgObj.method = 'contact';
       msgObj.content = { type: 'initContactList', contactList: content };
@@ -400,7 +399,7 @@ app.on('ready', function() {
         break;
       case 'delContact':
         contactList.delKey(content.contactAddress);
-        getContacts();        
+        getContacts(true);
         break;
     }
   });
