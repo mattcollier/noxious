@@ -13,6 +13,9 @@ the [node ursa module](https://github.com/quartzjer/ursa).
 ##Platform
 noxious is built on the [Atom Shell Framework](https://github.com/atom/atom-shell).
 
+##Screenshot
+![noxious screenshot](https://github.com/mattcollier/noxious/blob/screenshots/screenshot1.png)
+
 ###Operating System Support
 
 ####Linux
