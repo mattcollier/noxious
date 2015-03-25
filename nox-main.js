@@ -126,7 +126,7 @@ function buildEncryptedMessage(destAddress, msgText) {
   msgObj.signature = myCrypto.signString(JSON.stringify(msgContent));
   var encryptedData = encrypt(tmpCrypto, JSON.stringify(msgObj));
   var encObj = {};
-  encObj.content = {type: 'encryptedData', data: encryptedData};
+  encObj.content = {type: 'encryptedData', clearFrom: myAddress, data: encryptedData};
   return encObj;
 }
 
