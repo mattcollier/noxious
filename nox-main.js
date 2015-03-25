@@ -239,21 +239,30 @@ function processMessage(msg) {
       console.log('Decrypted Data: ', decObj);
       var content = decObj.content;
       var signature = decObj.signature;
-      switch (content.type) {
-        case 'message':
-          var tmpCrypto = new NoxCrypto({'pubPEM': contactList.getKey(content.from).pubPEM});
-          if (tmpCrypto.signatureVerified(JSON.stringify(content), signature)) {
-            console.log('[process message] Message is properly signed.');
-            if (content.to==myAddress && content.from!==undefined && content.from && content.from!==myAddress) {
-              console.log('[process message] Message is properly addressed.');
-              var msgObj = {};
-              msgObj.method = 'message';
-              msgObj.content = { type:'message', from: content.from, msgText: content.msgText };
-              notifyGUI(msgObj);
-            }
-          } else {
-            console.log('[process message] Message is NOT properly signed.  Disregarding.');
+      // TODO additional integrity checks
+      // if a message is sent by someone who has my public key, but I no longer have theirs the
+      // message will still arrive here, but it will not be possible to verify the signature.
+      // do we have a public key for this sender?
+      if (content.to && content.from && content.type && content.msgText) {
+        if (contactList.getKey(content.from)) {
+          switch (content.type) {
+            case 'message':
+              var tmpCrypto = new NoxCrypto({'pubPEM': contactList.getKey(content.from).pubPEM});
+              if (tmpCrypto.signatureVerified(JSON.stringify(content), signature)) {
+                console.log('[process message] Message is properly signed.');
+                if (content.to==myAddress && content.from!==undefined && content.from && content.from!==myAddress) {
+                  console.log('[process message] Message is properly addressed.');
+                  var msgObj = {};
+                  msgObj.method = 'message';
+                  msgObj.content = { type:'message', from: content.from, msgText: content.msgText };
+                  notifyGUI(msgObj);
+                }
+              } else {
+                console.log('[process message] Message is NOT properly signed.  Disregarding.');
+              }
+              break;
           }
+        }
       }
       break;
   }

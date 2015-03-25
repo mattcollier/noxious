@@ -46,7 +46,7 @@
             chatId.fullAddress = msg.content;
             // global
             myAddress = chatId.address;
-            $('#chatID').replaceWith(myAddress);
+            $('#chatID').html(myAddress);
             break;
         }
       });
@@ -98,7 +98,10 @@
               function myFlasher() {
                 $('#notification_' + contactAddress.address).fadeTo(850, 0.1).fadeTo(850, 1.0);
               }
-              notifications[contactAddress.address] = setInterval(myFlasher, 2000);
+              if (notifications[contactAddress.address] === undefined) {
+                // there's not already a notification for this contact
+                notifications[contactAddress.address] = setInterval(myFlasher, 2000);
+              }
             }
             break;
         }
@@ -213,6 +216,7 @@
             if(notifications[contactAddress] !== undefined) {
               clearInterval(notifications[contactAddress]);
               $('#notification_' + contactAddress).fadeTo('fast', 1.0);
+              delete notifications[contactAddress];
             }
           }
         }
