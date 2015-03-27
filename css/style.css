@@ -125,6 +125,9 @@ body,html {
   padding-left: 5px;
 }
 
+.requestInfo {
+  padding-top:10px;
+}
 .requestIcon {
   padding-right: 5px;
 }
@@ -169,6 +172,7 @@ body,html {
 
 .specificChatContainer {
   height: 100%;
+  padding-right: 10px;
 }
 
 .hiddenChat {

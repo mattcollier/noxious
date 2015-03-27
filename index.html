@@ -47,7 +47,8 @@
 
       function genContactRequestHTML(contactRequest) {
         // contactRequest is a torAddress object plus .direction and .status
-        var reqCode = '<div id="request_' + contactRequest.address + '" class="pendingContactRequest" \
+        var reqCode = '<div id="request_' + contactRequest.address + '" \
+          class="pendingContactRequest" \
           data-realaddress="' + contactRequest.address + '" \
           data-direction="' + contactRequest.direction + '">'
         if(contactRequest.direction == 'incoming') {
@@ -64,17 +65,20 @@
           case 'delivered':
             reqCode = reqCode + '<span id="requestStatus_' + contactRequest.address + '" \
               data-status="delivered" data-tip="delivered" \
-              class="requestStatusIcon glyphicon glyphicon glyphicon glyphicon-ok" aria-hidden="true"></span>';
+              class="requestStatusIcon glyphicon glyphicon glyphicon glyphicon-ok" \
+              aria-hidden="true"></span>';
             break;
           case 'sending':
             reqCode = reqCode + '<span id="requestStatus_' + contactRequest.address + '" \
               data-status="sending" data-tip="sending" \
-              class="requestStatusIcon glyphicon glyphicon glyphicon-transfer" aria-hidden="true"></span>';
+              class="requestStatusIcon glyphicon glyphicon glyphicon-transfer" \
+              aria-hidden="true"></span>';
             break;
           case 'failed':
             reqCode = reqCode + '<span id="requestStatus_' + contactRequest.address + '" \
               data-status="failed" data-tip="failed" \
-              class="requestStatusIcon glyphicon glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>';
+              class="requestStatusIcon glyphicon glyphicon glyphicon-exclamation-sign" \
+              aria-hidden="true"></span>';
             break;        }
         reqCode = reqCode + '</div>';
         return reqCode;
@@ -134,11 +138,14 @@
               data-displayname="' + displayName + '" \
               data-isnickname="' + isNickName + '" \
               class="contact"> \
-              <span id="notification_' + contactAddress.address + '" class="glyphicon glyphicon-user" aria-hidden="true"></span> \
+              <span id="notification_' + contactAddress.address + '" \
+              class="glyphicon glyphicon-user" aria-hidden="true"></span> \
               <span id="addressSpan_' + contactAddress.address + '" class="contactAddress" \
               >' + displayName + '</span> \
-              <span class="deleteContactIcon glyphicon glyphicon-remove" aria-hidden="true"></span> \
-              <span class="editContactIcon glyphicon glyphicon-edit" aria-hidden="true"></span> \
+              <span class="deleteContactIcon glyphicon glyphicon-remove" \
+              aria-hidden="true"></span> \
+              <span class="editContactIcon glyphicon glyphicon-edit" \
+              aria-hidden="true"></span> \
               </div>';
               $('#contactList').append(contactCode);
             }
@@ -146,7 +153,9 @@
           case 'initContactRequestList':
             $('#contactRequestList').html('');
             var contactRequestList = msg.contactRequestList;
-            var reqArray = Object.keys(contactRequestList).map(function(key){ return contactRequestList[key]; });
+            var reqArray = Object.keys(contactRequestList).map(function(key){
+              return contactRequestList[key];
+            });
             for (reqIndex in reqArray) {
               var contactRequest = Object.create(torAddress);
               contactRequest.fullAddress = reqArray[reqIndex].contactAddress;
@@ -166,7 +175,8 @@
 
       function genChatContainer(contactAddress) {
         var chatContainerId = 'chatContainer_' + contactAddress;
-        var containerHTML = '<div id="' + chatContainerId + '" class="hiddenChat specificChatContainer"> \
+        var containerHTML = '<div id="' + chatContainerId + '" class="hiddenChat \
+          specificChatContainer"> \
           <div id="chatContent_' + contactAddress + '" class="chatContent"> \
           </div> \
           <div id="chatInputDiv_' + contactAddress + '" class="chatInputDiv"> \
@@ -233,10 +243,44 @@
         }
         displayName = displayName + ':';
         var chatHTML = '<div id="' + messageId + '" class="chatTextDiv"> \
-        <span class="chatName">' + displayName + '</span><span class="chatTextSpan">' + chatText + '</span></div>';
+        <span class="chatName">' + displayName + '</span><span \
+        class="chatTextSpan">' + chatText + '</span></div>';
         $('#' + chatContentId).append(chatHTML);
         scrollToBottom($('#' + chatContentId));
         return messageId;
+      }
+
+      function genRequestInfoHTML (contactAddress, direction) {
+        var requestInfoHTML = '';
+        if(direction == 'incoming') {
+          requestInfoHTML = '<div id="reqInfo_' + contactAddress + '" \
+            class="requestInfo"><strong>' + contactAddress + '</strong> \
+            would like to add you on Noxious \
+            <div id="requestButtons_' + contactAddress + '"> \
+            <button id="accept_' + contactAddress + '" \
+            class="btn-success requestChoiceButton" data-choice="acceptContactRequest" \
+            data-description="Accepted.">Accept</button> or \
+            <button id="decline_' + contactAddress + '" \
+            class="btn-danger requestChoiceButton" \
+            data-choice="declineContactRequest" data-description="Declined."> \
+            Decline</button></div></div>';
+        } else {
+          switch($('#requestStatus_'+contactAddress).data('status')) {
+            case 'delivered':
+              requestInfoHTML = '<div id="reqInfo_' + contactAddress + '"> \
+                You sent a contact request \
+                to <strong>' + contactAddress + '</strong> but there has been no response.';
+              break;
+            case 'failed':
+              requestInfoHTML = '<div id="reqInfo_' + contactAddress + '">You \
+                attempted to send a contact request \
+                to <strong>' + contactAddress + '</strong> but the recipient did \
+                not receive your request.  Delete the contact request and \
+                resend when the recipient is online.';
+              break;
+          }
+        }
+        return requestInfoHTML;
       }
 
       $(document).on('keydown', '.chatInput', function(e) {
@@ -254,33 +298,10 @@
         var direction = $(this).data('direction');
         // display if it's not already displayed
         if($('#reqInfo_' + contactAddress).length == 0) {
-          var requestInfoHTML = '';
-          if(direction == 'incoming') {
-            requestInfoHTML = '<div id="reqInfo_' + contactAddress + '" class="requestInfo"><strong>' + contactAddress + '</strong> would like to add you on Noxious \
-              <div id="requestButtons_' + contactAddress + '"><button id="accept_' + contactAddress + '" \
-              class="btn-success requestChoiceButton" data-choice="acceptContactRequest" \
-              data-description="Accepted.">Accept</button> or \
-              <button id="decline_' + contactAddress + '" class="btn-danger requestChoiceButton" \
-              data-choice="declineContactRequest" data-description="Declined."> \
-              Decline</button></div></div>';
-          } else {
-            switch($('#requestStatus_'+contactAddress).data('status')) {
-              case 'delivered':
-                requestInfoHTML = '<div id="reqInfo_' + contactAddress + '">You sent a contact request \
-                  to <strong>' + contactAddress + '</strong> but there has been no response.';
-                break;
-              case 'failed':
-                requestInfoHTML = '<div id="reqInfo_' + contactAddress + '">You \
-                  attempted to send a contact request \
-                  to <strong>' + contactAddress + '</strong> but the recipient did \
-                  not receive your request.  Delete the contact request and \
-                  resend when the recipient is online.';
-                break;
-            }
-          }
-          $('#chatContent_systemMessages').append(requestInfoHTML);
-          setActiveChat(systemMessagesAddress, systemMessagesDisplay);
+          $('#chatContent_systemMessages').append(genRequestInfoHTML(contactAddress, direction));
         }
+        // display system messages
+        setActiveChat(systemMessagesAddress, systemMessagesDisplay);
       });
 
       function removeContactRequest(contactAddress) {

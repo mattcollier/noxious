@@ -416,8 +416,25 @@ app.on('ready', function() {
         break;
       case 'sendContactRequest':
         // do not send request to myAddress
-        // TODO display error message if to=myAddress, for now, discard
-        if(content.contactAddress!==myAddress) {
+        if(content.contactAddress==myAddress) {
+          var msgObj = {};
+          msgObj.method = 'error';
+          msgObj.content = { type: 'contact',
+            message: 'You may not send a contact request to your own Client ID.'};
+          notifyGUI(msgObj);
+        } else if (contactList.getKey(content.contactAddress)) {
+          var msgObj = {};
+          msgObj.method = 'error';
+          msgObj.content = { type: 'contact',
+            message: 'You may not send a contact request to an existing contact.  Delete the contact and try again.'};
+          notifyGUI(msgObj);
+        } else if (contactRequestList.getKey(content.contactAddress)) {
+          var msgObj = {};
+          msgObj.method = 'error';
+          msgObj.content = { type: 'contact',
+            message: 'There is already a pending contact request for this Client ID.  Delete the contact request and try again.'};
+          notifyGUI(msgObj);
+        } else {
           contactRequestDomain.run(function() {
             myNoxClient.transmitObject(content.contactAddress, buildContactRequest(content.contactAddress), function(err) {
               updateRequestStatus(content.contactAddress, 'delivered');
