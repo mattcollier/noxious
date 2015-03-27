@@ -201,10 +201,23 @@ var server = http.createServer(function (req, res){
         }
       });
       req.on('end', function() {
-        res.writeHead(200, {'Content-Type': 'text/html'});
-        res.write('Thanks for the data, ');
+        switch(preProcessMessage(reqBody)) {
+          case 200:
+            res.writeHead(200, {'Content-Type': 'text/html'});
+            processMessage(reqBody);
+            break;
+          case 409:
+            res.writeHead(409, {'Content-Type': 'text/html'});
+            break;
+          case 410:
+            res.writeHead(410, {'Content-Type': 'text/html'});
+            break;
+          case 403:
+            res.writeHead(403, {'Content-Type': 'text/html'});
+            break;
+        }
+        res.write('Thank you, come again.');
         res.end();
-        processMessage(reqBody);
       });
     }
   }
@@ -245,6 +258,44 @@ function registerContactRequest(req) {
   } else if(contactRequestList.getKey(req.from)) {
     console.log('[contact] Contact request is from an existing contact.');
   }
+}
+
+function preProcessMessage(msg) {
+  // default statusCode = forbidden;
+  var statusCode = 403;
+  msgObj = JSON.parse(msg);
+  console.log('[preprocessing message] Start');
+  // TODO this function should verify message integrity
+  if (msgObj.content !== undefined) {
+    var content = msgObj.content;
+    if (content.type !== undefined) {
+      switch (content.type) {
+        case 'introduction':
+          if (content.from !== undefined && content.from) {
+            // TODO add address validation
+            if(contactList.getKey(content.from) || contactRequestList.getKey(content.from)) {
+              // we already know this person and should not be receiving an intro
+              statusCode = 409;
+            } else {
+              // it's ok
+              statusCode = 200;
+            }
+          }
+          break;
+        case 'encryptedData':
+          if (content.clearFrom !== undefined && content.clearFrom) {
+            if(contactList.getKey(content.clearFrom)) {
+              // this is from an existing contact, it's OK
+              statusCode = 200;
+            } else {
+              statusCode = 410;
+            }
+          }
+          break;
+      }
+    }
+  }
+  return statusCode;
 }
 
 function processMessage(msg) {
