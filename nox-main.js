@@ -464,8 +464,8 @@ app.on('ready', function() {
         // TODO transmitObject should have a callback that triggers only on successful delivery of Message
         updateRequestStatus(content.contactAddress, 'sending');
         contactRequestDomain.run(function() {
-          myNoxClient.transmitObject(content.contactAddress, buildContactRequest(content.contactAddress), function(err) {
-            if(!err) {
+          myNoxClient.transmitObject(content.contactAddress, buildContactRequest(content.contactAddress), function(status) {
+            if(status == 200) {
               // pull the info from the contactRequestList and make a new conact.
               contactList.addKey(content.contactAddress, contactRequestList.getKey(content.contactAddress));
               // remove the contact request and save
