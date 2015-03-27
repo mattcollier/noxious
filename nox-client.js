@@ -42,10 +42,8 @@ NoxClient.prototype.transmitObject = function (destAddress, msg, cb) {
       console.log('[noxclient transmitObject] HTTP Status: ', res.statusCode);
       //console.log(res.statusCode, res.headers);
       //console.log(body);
-      if (res.statusCode === 200) {
-        if(cb && typeof(cb) == 'function') {
-          cb();
-        }
+      if(cb && typeof(cb) == 'function') {
+        cb(res.statusCode);
       }
     });
   });

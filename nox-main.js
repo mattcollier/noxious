@@ -274,10 +274,15 @@ function preProcessMessage(msg) {
           if (content.from !== undefined && content.from) {
             // TODO add address validation
             if(contactList.getKey(content.from) === undefined &&
-              contactRequestList.getKey(content.from) == undefined) {
+              contactRequestList.getKey(content.from) === undefined) {
               // we don't know this person already, intro is OK
               statusCode = 200;
+            } else if (contactRequestList.getKey(content.from) !== undefined &&
+              contactRequestList.getKey(content.from)['direction'] == 'outgoing') {
+              // we're expecting to hear back from this person, intro is OK
+              statusCode = 200;
             } else {
+              // contact request (key exchange) process needs to be repeated.
               statusCode = 409;
             }
           }
@@ -288,6 +293,7 @@ function preProcessMessage(msg) {
               // this is from an existing contact, it's OK
               statusCode = 200;
             } else {
+              // there is no public key for this contact
               statusCode = 410;
             }
           }
@@ -428,7 +434,21 @@ app.on('ready', function() {
       case 'sendEncrypted':
         var encObj = buildEncryptedMessage(content.destAddress, content.msgText);
         dataTransmitDomain.run(function() {
-          myNoxClient.transmitObject(content.destAddress, encObj)
+          myNoxClient.transmitObject(content.destAddress, encObj, function(status) {
+            switch(status) {
+              case 200:
+                // sent OK, update GUI
+                break;
+              case 410:
+                // recipient does not have the public key (anymore)
+                var msgObj = {};
+                msgObj.method = 'error';
+                msgObj.content = { type: 'message',
+                  message: 'The recipient no longer has you in their contact list.  Send a contact request.'};
+                notifyGUI(msgObj);
+                break;
+            }
+          });
         });
         break;
     }
@@ -487,8 +507,20 @@ app.on('ready', function() {
           notifyGUI(msgObj);
         } else {
           contactRequestDomain.run(function() {
-            myNoxClient.transmitObject(content.contactAddress, buildContactRequest(content.contactAddress), function(err) {
-              updateRequestStatus(content.contactAddress, 'delivered');
+            myNoxClient.transmitObject(content.contactAddress, buildContactRequest(content.contactAddress), function(status) {
+              switch(status) {
+                case 200:
+                  updateRequestStatus(content.contactAddress, 'delivered');
+                  break;
+                case 409:
+                  updateRequestStatus(content.contactAddress, 'failed');
+                  var msgObj = {};
+                  msgObj.method = 'error';
+                  msgObj.content = { type: 'contact',
+                    message: 'The recipient already has your contact information.  Ask them to delete the information and try again.'};
+                  notifyGUI(msgObj);
+                  break;
+              }
             });
           });
           var contactRequest = { contactAddress: content.contactAddress, direction: 'outgoing', status: 'sending' };
