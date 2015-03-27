@@ -32,7 +32,7 @@ function notifyCommError(error) {
       break;
     case 'ETTLEXPIRED':
       msgObj.content = { type: 'communication',
-        message: 'The recipient does not appear to be online at this time.  Try again later.'};
+        message: 'There seems to be trouble with your Internet connection.  Try again later.'};
     default:
       msgObj.content = { type: 'communication',
         message: 'A communication error occurred, see the console log for more information.'};
@@ -273,12 +273,12 @@ function preProcessMessage(msg) {
         case 'introduction':
           if (content.from !== undefined && content.from) {
             // TODO add address validation
-            if(contactList.getKey(content.from) || contactRequestList.getKey(content.from)) {
-              // we already know this person and should not be receiving an intro
-              statusCode = 409;
-            } else {
-              // it's ok
+            if(contactList.getKey(content.from) === undefined &&
+              contactRequestList.getKey(content.from) == undefined) {
+              // we don't know this person already, intro is OK
               statusCode = 200;
+            } else {
+              statusCode = 409;
             }
           }
           break;
