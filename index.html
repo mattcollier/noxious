@@ -305,7 +305,9 @@
       });
 
       function removeContactRequest(contactAddress) {
+        // remove the contact request as well as related informational messages
         $('#request_' + contactAddress).remove();
+        $('#reqInfo_' + contactAddress).remove();
         // if there are no other requests, hide container
         if($('#contactRequestList').children().length == 0) {
           $('#contactRequestContainer').slideUp(400);
