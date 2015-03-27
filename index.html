@@ -20,16 +20,6 @@
       var notifications = {};
 
       var ipc = require('ipc');
-      console.log(ipc.sendSync('synchronous-message', 'ping')); // prints "pong"
-
-      ipc.on('asynchronous-reply', function(arg) {
-        console.log(arg); // prints "pong"
-      });
-      ipc.send('asynchronous-message', 'ping');
-
-      ipc.on('ping', function(message) {
-        console.log(message);
-      });
 
       function notifyAtom(msg) {
         ipc.send(msg.method, msg.content);
@@ -38,6 +28,10 @@
       // tor Hidden Service Address
       // .onion is removed from the address to avoid css issues
       var torAddress = {fullAddress: '', get address() {return this.fullAddress.split('.')[0];}, nickName: ''};
+
+      ipc.on('error', function(msg) {
+        alert(msg.message);
+      });
 
       ipc.on('status', function(msg) {
         switch (msg.type) {
@@ -68,14 +62,20 @@
           class="deleteRequestIcon glyphicon glyphicon-remove" aria-hidden="true"></span>';
         switch (contactRequest.status) {
           case 'delivered':
-            reqCode = reqCode + '<span data-tip="delivered" \
+            reqCode = reqCode + '<span id="requestStatus_' + contactRequest.address + '" \
+              data-status="delivered" data-tip="delivered" \
               class="requestStatusIcon glyphicon glyphicon glyphicon glyphicon-ok" aria-hidden="true"></span>';
             break;
           case 'sending':
-            reqCode = reqCode + '<span data-tip="sending" \
+            reqCode = reqCode + '<span id="requestStatus_' + contactRequest.address + '" \
+              data-status="sending" data-tip="sending" \
               class="requestStatusIcon glyphicon glyphicon glyphicon-transfer" aria-hidden="true"></span>';
             break;
-        }
+          case 'failed':
+            reqCode = reqCode + '<span id="requestStatus_' + contactRequest.address + '" \
+              data-status="failed" data-tip="failed" \
+              class="requestStatusIcon glyphicon glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>';
+            break;        }
         reqCode = reqCode + '</div>';
         return reqCode;
       }
@@ -264,8 +264,19 @@
               data-choice="declineContactRequest" data-description="Declined."> \
               Decline</button></div></div>';
           } else {
-            requestInfoHTML = '<div id="reqInfo_' + contactAddress + '">You sent a contact request \
-              to <strong>' + contactAddress + '</strong> but there has been no response.';
+            switch($('#requestStatus_'+contactAddress).data('status')) {
+              case 'delivered':
+                requestInfoHTML = '<div id="reqInfo_' + contactAddress + '">You sent a contact request \
+                  to <strong>' + contactAddress + '</strong> but there has been no response.';
+                break;
+              case 'failed':
+                requestInfoHTML = '<div id="reqInfo_' + contactAddress + '">You \
+                  attempted to send a contact request \
+                  to <strong>' + contactAddress + '</strong> but the recipient did \
+                  not receive your request.  Delete the contact request and \
+                  resend when the recipient is online.';
+                break;
+            }
           }
           $('#chatContent_systemMessages').append(requestInfoHTML);
           setActiveChat(systemMessagesAddress, systemMessagesDisplay);

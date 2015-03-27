@@ -16,11 +16,42 @@ var BrowserWindow = require('browser-window');  // Module to create native brows
 var thsBuilder = require('ths');
 var ths = new thsBuilder(dataDir);
 // crypto related
-
 var NoxCrypto = require(__dirname + '/nox-crypto.js');
 var myCrypto = new NoxCrypto({ dataDir: dataDir, fileName: 'privatekey.json'});
-
+var dataTransmitDomain = require('domain').create();
+var contactRequestDomain = require('domain').create();
 var myAddress;
+
+function notifyCommError(error) {
+  var msgObj = {};
+  msgObj.method = 'error';
+  switch(error) {
+    case 'EHOSTUNREACH':
+      msgObj.content = { type: 'communication',
+        message: 'The recipient does not appear to be online at this time.  Try again later.'};
+      break;
+    case 'ETTLEXPIRED':
+      msgObj.content = { type: 'communication',
+        message: 'The recipient does not appear to be online at this time.  Try again later.'};
+    default:
+      msgObj.content = { type: 'communication',
+        message: 'A communication error occurred, see the console log for more information.'};
+      break;
+  }
+  notifyGUI(msgObj);
+}
+
+dataTransmitDomain.on('error', function(err){
+  console.log(err);
+  notifyCommError(err.code);
+});
+
+contactRequestDomain.on('error', function(err){
+  console.log(err);
+  notifyCommError(err.code);
+  var de = err.domainEmitter['_dstaddr'];
+  updateRequestStatus(err.domainEmitter['_dstaddr'], 'failed');
+});
 
 function notifyGUI(msg) {
   // TODO, needs improvement?
@@ -58,6 +89,13 @@ function getContactRequests() {
       notifyGUI(msgObj);
     }
   });
+}
+
+function updateRequestStatus(contactAddress, status) {
+  var tmpContact = contactRequestList.getKey(contactAddress);
+  tmpContact.status=status;
+  contactRequestList.addKey(contactAddress, tmpContact);
+  getContactRequests();
 }
 
 function encrypt(noxCrypto, clearText){
@@ -173,10 +211,6 @@ var server = http.createServer(function (req, res){
 });
 server.listen(1111, '127.0.0.1');
 console.log('Server running at http://127.0.0.1:1111');
-
-function logSomething() {
-  console.log('something');
-}
 
 function relayMessage(msg) {
   mainWindow.webContents.send('msg', 'from: ' + msg.name + ' message: ' + msg.message);
@@ -325,7 +359,6 @@ app.on('ready', function() {
   ths.start(false, function () {
     console.log("tor Started!");
     if(!mainWindow.webContents.isLoading()) {
-      mainWindow.webContents.send('ping', 'Tor is ready');
       startHiddenService();
     }
   });
@@ -333,7 +366,7 @@ app.on('ready', function() {
   // and load the index.html of the app.
   mainWindow.loadUrl('file://' + __dirname + '/index.html');
   mainWindow.webContents.on('did-finish-load', function() {
-    console.log('did finish loading.');
+    console.log('[webContents] Finished loading.');
     getContacts();
     getContactRequests();
   });
@@ -343,35 +376,34 @@ app.on('ready', function() {
     switch (content.type) {
       case 'sendEncrypted':
         var encObj = buildEncryptedMessage(content.destAddress, content.msgText);
-        myNoxClient.transmitObject(content.destAddress, encObj)
+        dataTransmitDomain.run(function() {
+          myNoxClient.transmitObject(content.destAddress, encObj)
+        });
         break;
     }
   });
 
   ipc.on('contact', function(event, content) {
     console.log('[contact event] ', content);
-    function updateRequestStatus(contactAddress, status) {
-      var tmpContact = contactRequestList.getKey(contactAddress);
-      tmpContact.status=status;
-      contactRequestList.addKey(contactAddress, tmpContact);
-      getContactRequests();
-    }
+
     switch (content.type) {
       case 'acceptContactRequest':
         // user has chosen to accept the contact request
         // send a contact request to sender to provide pubKey
         // TODO transmitObject should have a callback that triggers only on successful delivery of Message
         updateRequestStatus(content.contactAddress, 'sending');
-        myNoxClient.transmitObject(content.contactAddress, buildContactRequest(content.contactAddress), function(err) {
-          if(!err) {
-            // pull the info from the contactRequestList and make a new conact.
-            contactList.addKey(content.contactAddress, contactRequestList.getKey(content.contactAddress));
-            // remove the contact request and save
-            contactRequestList.delKey(content.contactAddress);
-            // for now, just reinit the contact lists
-            getContacts();
-            getContactRequests();
-          }
+        contactRequestDomain.run(function() {
+          myNoxClient.transmitObject(content.contactAddress, buildContactRequest(content.contactAddress), function(err) {
+            if(!err) {
+              // pull the info from the contactRequestList and make a new conact.
+              contactList.addKey(content.contactAddress, contactRequestList.getKey(content.contactAddress));
+              // remove the contact request and save
+              contactRequestList.delKey(content.contactAddress);
+              // for now, just reinit the contact lists
+              getContacts();
+              getContactRequests();
+            }
+          });
         });
         break;
       case 'delContactRequest':
@@ -386,9 +418,10 @@ app.on('ready', function() {
         // do not send request to myAddress
         // TODO display error message if to=myAddress, for now, discard
         if(content.contactAddress!==myAddress) {
-          // TODO need callback here
-          myNoxClient.transmitObject(content.contactAddress, buildContactRequest(content.contactAddress), function(err) {
-            updateRequestStatus(content.contactAddress, 'delivered');
+          contactRequestDomain.run(function() {
+            myNoxClient.transmitObject(content.contactAddress, buildContactRequest(content.contactAddress), function(err) {
+              updateRequestStatus(content.contactAddress, 'delivered');
+            });
           });
           var contactRequest = { contactAddress: content.contactAddress, direction: 'outgoing', status: 'sending' };
           contactRequestList.addKey(content.contactAddress, contactRequest);
@@ -412,19 +445,6 @@ app.on('ready', function() {
         break;
     }
   });
-
-  // test ipc communications
-  ipc.on('asynchronous-message', function(event, arg) {
-    console.log(arg);  // prints "ping"
-    event.sender.send('asynchronous-reply', 'pong');
-  });
-
-  ipc.on('synchronous-message', function(event, arg) {
-    console.log(arg);  // prints "ping"
-    event.returnValue = 'pong';
-  });
-
-
 
   // Emitted when the window is closed.
   mainWindow.on('closed', function() {

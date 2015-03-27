@@ -23,5 +23,6 @@
     "socksv5": "0.0.4",
     "ths": "git+https://github.com/Mowje/node-ths.git",
     "ursa": "git+https://github.com/quartzjer/ursa.git"
-  }
+  },
+  "scripts": {"start": "atom-shell ."}
 }

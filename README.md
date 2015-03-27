@@ -30,10 +30,9 @@ apt-get install tor build-essential libssl-dev git
 [these instructions](http://jonathanmh.com/installing-io-js-ubuntu-digital-ocean-droplet/). npm, node package
 manager will be included with the other io.js binaries.
 ######npm
-Once you have a working npm installation, **as root**, installing the following modules globally with the following commands:
+Once you have a working npm installation, **as root**, installing the following modules globally with the following command:
 ```
 npm install node-gyp -g
-npm install atom-shell -g
 ```
 ######Clone and build
 Next, as a **regular user**, clone this repository into the folder of your choice:
@@ -54,9 +53,9 @@ OSX       | build_darwin.sh
 
 At the end of the script execution, you should see 'gyp info ok'.
 #####Run noxious
-From the parent folder of noxious do:
+From inside the noxious folder do:
 ```
-atom-shell noxious
+npm start
 ```
 You should see the GUI appear.  Within 30 seconds or so, you should see your 'Chat ID'
 appear next to the asterisk (*) in the upper left hand corner of the window.  You may now
