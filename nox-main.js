@@ -461,7 +461,6 @@ app.on('ready', function() {
       case 'acceptContactRequest':
         // user has chosen to accept the contact request
         // send a contact request to sender to provide pubKey
-        // TODO transmitObject should have a callback that triggers only on successful delivery of Message
         updateRequestStatus(content.contactAddress, 'sending');
         contactRequestDomain.run(function() {
           myNoxClient.transmitObject(content.contactAddress, buildContactRequest(content.contactAddress), function(status) {

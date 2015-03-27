@@ -148,6 +148,8 @@
               aria-hidden="true"></span> \
               </div>';
               $('#contactList').append(contactCode);
+              // Remove any messages relating to contact requests for contacts
+              $('#reqInfo_' + contactAddress.address).remove();
             }
             break;
           case 'initContactRequestList':
