@@ -64,3 +64,5 @@ request' process which facilitates the exchange of public keys.
 
 ####OSX
 The current version has been tested on OSX
+####Windows
+noxious has been successfully built on Windows.  Instructions are forthcoming.
