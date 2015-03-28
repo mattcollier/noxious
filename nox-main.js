@@ -473,6 +473,15 @@ app.on('ready', function() {
               // for now, just reinit the contact lists
               getContacts();
               getContactRequests();
+            } else if (status == 409) {
+              // this can occur in a case where a successfully transmitted contact
+              // request is deleted before a reply is sent.
+              updateRequestStatus(content.contactAddress, 'failed');
+              var msgObj = {};
+              msgObj.method = 'error';
+              msgObj.content = { type: 'contact',
+                message: 'The recipient already has your contact information.  Ask them to delete your contact information and try again.'};
+              notifyGUI(msgObj);
             }
           });
         });
