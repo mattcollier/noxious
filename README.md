@@ -1,5 +1,5 @@
 # noxious
-noxious is designed to be a secure and anonymous instant messaging platform.
+noxious is designed to be a secure, decentralized, and anonymous instant messaging platform.
 
 ##Anonymous
 All communications are conducted between tor hidden services and never leave the tor network.
