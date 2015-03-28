@@ -2,15 +2,15 @@
 noxious is designed to be a secure, decentralized, and anonymous instant messaging platform.
 
 ##Anonymous
-All communications are conducted between [tor hidden services](https://www.torproject.org/docs/hidden-services.html.en){:target="_blank"} and never leave the tor network.
+All communications are conducted between [tor hidden services](https://www.torproject.org/docs/hidden-services.html.en) and never leave the tor network.
 
 ##Secure
 In addition to the encryption offered by the tor hidden service protocol, all chat messages are
 public-key encrypted using a 2048 bit key.  All cryto is handled by native OpenSSL libraries via
-the [node ursa module](https://github.com/quartzjer/ursa){:target="_blank"}.
+the [node ursa module](https://github.com/quartzjer/ursa).
 
 ##Platform
-noxious is built on the [Atom Shell Framework](https://github.com/atom/atom-shell){:target="_blank"}.
+noxious is built on the [Atom Shell Framework](https://github.com/atom/atom-shell).
 
 ##Screenshot
 ![noxious screenshot](https://github.com/mattcollier/noxious/blob/screenshots/screenshot1.png)
@@ -25,8 +25,8 @@ The current version has been tested on 32bit and 64bit version of Debian Linux.
 apt-get install tor build-essential libssl-dev git
 ```
 ######io.js
-[Get io.js here.](https://iojs.org/en/index.html){:target="_blank"}, and you can install it based on
-[these instructions](http://jonathanmh.com/installing-io-js-ubuntu-digital-ocean-droplet/){:target="_blank"}. npm, node package
+[Get io.js here.](https://iojs.org/en/index.html), and you can install it based on
+[these instructions](http://jonathanmh.com/installing-io-js-ubuntu-digital-ocean-droplet/). npm, node package
 manager will be included with the other io.js binaries.
 ######npm
 Once you have a working npm installation, **as root**, installing the following modules globally with the following command:
