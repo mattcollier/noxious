@@ -231,6 +231,9 @@
               delete notifications[contactAddress];
             }
           }
+        } else if (activeChatAddress == contactAddress) {
+          // just focus the chat text
+          $('#chatInput_' + contactAddress).focus();
         }
       }
 
@@ -289,8 +292,13 @@
         if(e.keyCode == 13) {
           var contactAddress = $(this).data('realaddress');
           var chatText = $(this).val();
-          var messageId = postChat(contactAddress, myAddress, chatText);
-          sendMessage(contactAddress, chatText, messageId);
+          if (chatText == '') {
+            // blank lines should not be transmitted
+            alert('Blank lines will not be transmitted.');
+          } else {
+            var messageId = postChat(contactAddress, myAddress, chatText);
+            sendMessage(contactAddress, chatText, messageId);
+          }
           $(this).val('');
         }
       });
