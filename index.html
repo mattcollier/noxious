@@ -108,6 +108,17 @@
               }
             }
             break;
+          case 'status':
+            switch (msg.status) {
+              case 'delivered':
+                $('#' + msg.msgId).removeClass('chatSending');
+                break;
+              case 'failed':
+                $('#' + msg.msgId).removeClass('chatSending');
+                $('#' + msg.msgId).addClass('chatFailed');
+                break;
+            }
+            break;
         }
       });
 
@@ -241,13 +252,15 @@
         var messageId = 'message_' + messageCounter++;
         var chatContentId = 'chatContent_' + contactAddress;
         var displayName = '';
+        var statusClass = '';
         if (authorAddress == myAddress) {
           displayName = 'me';
+          statusClass = 'chatSending';          
         } else {
           displayName = $('#contact_' + contactAddress).data('displayname');
         }
         displayName = displayName + ':';
-        var chatHTML = '<div id="' + messageId + '" class="chatTextDiv"> \
+        var chatHTML = '<div id="' + messageId + '" class="chatTextDiv ' + statusClass + '"> \
         <span class="chatName">' + displayName + '</span><span \
         class="chatTextSpan">' + chatText + '</span></div>';
         $('#' + chatContentId).append(chatHTML);

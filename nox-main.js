@@ -439,6 +439,10 @@ app.on('ready', function() {
             switch(status) {
               case 200:
                 // sent OK, update GUI
+                var msgObj = {};
+                msgObj.method = 'message';
+                msgObj.content = { type: 'status', status: 'delivered', msgId: content.msgId };
+                notifyGUI(msgObj);
                 break;
               case 410:
                 // recipient does not have the public key (anymore)
@@ -446,6 +450,9 @@ app.on('ready', function() {
                 msgObj.method = 'error';
                 msgObj.content = { type: 'message',
                   message: 'The recipient no longer has you in their contact list.  Delete the contact, then send a contact request.'};
+                notifyGUI(msgObj);
+                msgObj.method = 'message';
+                msgObj.content = { type: 'status', status: 'failed', msgId: content.msgId };
                 notifyGUI(msgObj);
                 break;
             }

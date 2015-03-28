@@ -179,6 +179,29 @@ body,html {
   display: none;
 }
 
+.chatSending {
+  background-color: #FFFF66;
+}
+
+.chatFailed {
+  background-color: #FF8080;
+}
+
+.chatName {
+  font-weight: bold;
+}
+
+.chatTextDiv {
+  transition: background 0.5s linear;
+  padding-top: 1px;
+  padding-bottom: 1px;
+  padding-left: 10px;
+}
+
+.chatTextSpan {
+  padding-left: 10px;
+}
+
 .height100 {
   height: 100%;
 }
@@ -186,14 +209,6 @@ body,html {
 .container-fluid {
   padding:0px;
   margin: 0px;
-}
-
-.chatName {
-  font-weight: bold;
-}
-
-.chatTextSpan {
-  padding-left: 10px;
 }
 
 .messageNotification {
