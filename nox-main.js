@@ -278,7 +278,8 @@ function preProcessMessage(msg) {
               // we don't know this person already, intro is OK
               statusCode = 200;
             } else if (contactRequestList.getKey(content.from) !== undefined &&
-              contactRequestList.getKey(content.from)['direction'] == 'outgoing') {
+              contactRequestList.getKey(content.from)['direction'] == 'outgoing' &&
+              contactRequestList.getKey(content.from)['status'] == 'delivered') {
               // we're expecting to hear back from this person, intro is OK
               statusCode = 200;
             } else {
@@ -444,7 +445,7 @@ app.on('ready', function() {
                 var msgObj = {};
                 msgObj.method = 'error';
                 msgObj.content = { type: 'message',
-                  message: 'The recipient no longer has you in their contact list.  Send a contact request.'};
+                  message: 'The recipient no longer has you in their contact list.  Delete the contact, then send a contact request.'};
                 notifyGUI(msgObj);
                 break;
             }
@@ -516,7 +517,7 @@ app.on('ready', function() {
                   var msgObj = {};
                   msgObj.method = 'error';
                   msgObj.content = { type: 'contact',
-                    message: 'The recipient already has your contact information.  Ask them to delete the information and try again.'};
+                    message: 'The recipient already has your contact information.  Ask them to delete your contact information and try again.'};
                   notifyGUI(msgObj);
                   break;
               }
