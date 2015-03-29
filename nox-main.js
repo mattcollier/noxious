@@ -98,62 +98,9 @@ function updateRequestStatus(contactAddress, status) {
   getContactRequests();
 }
 
-function encrypt(noxCrypto, clearText){
-    var keySizeBytes = noxCrypto.keySize/8;
-    var buffer = new Buffer(clearText);
-    var maxBufferSize = keySizeBytes - 42; //according to ursa documentation
-    var bytesDecrypted = 0;
-    var encryptedBuffersList = [];
-
-    //loops through all data buffer encrypting piece by piece
-    while(bytesDecrypted < buffer.length){
-        //calculates next maximun length for temporary buffer and creates it
-        var amountToCopy = Math.min(maxBufferSize, buffer.length - bytesDecrypted);
-        var tempBuffer = new Buffer(amountToCopy);
-
-        //copies next chunk of data to the temporary buffer
-        buffer.copy(tempBuffer, 0, bytesDecrypted, bytesDecrypted + amountToCopy);
-
-        //encrypts and stores current chunk
-        var encryptedBuffer = noxCrypto.myPubKey.encrypt(tempBuffer);
-        encryptedBuffersList.push(encryptedBuffer);
-
-        bytesDecrypted += amountToCopy;
-    }
-
-    //concatenates all encrypted buffers and returns the corresponding String
-    return Buffer.concat(encryptedBuffersList).toString('base64');
-}
-
-function decrypt(encryptedString){
-    var keySizeBytes = myCrypto.keySize/8;
-    var encryptedBuffer = new Buffer(encryptedString, 'base64');
-    var decryptedBuffers = [];
-
-    //if the clear text was encrypted with a key of size N, the encrypted
-    //result is a string formed by the concatenation of strings of N bytes long,
-    //so we can find out how many substrings there are by diving the final result
-    //size per N
-    var totalBuffers = encryptedBuffer.length / keySizeBytes;
-
-    //decrypts each buffer and stores result buffer in an array
-    for(var i = 0 ; i < totalBuffers; i++){
-        //copies next buffer chunk to be decrypted in a temp buffer
-        var tempBuffer = new Buffer(keySizeBytes);
-        encryptedBuffer.copy(tempBuffer, 0, i*keySizeBytes, (i+1)*keySizeBytes);
-        //decrypts and stores current chunk
-        var decryptedBuffer = myCrypto.myPrivKey.decrypt(tempBuffer, 'base64');
-        decryptedBuffers.push(decryptedBuffer);
-    }
-
-    //concatenates all decrypted buffers and returns the corresponding String
-    return Buffer.concat(decryptedBuffers).toString();
-}
-
 function buildEncryptedMessage(destAddress, msgText) {
   // TODO should crypto objects be stored in an array for reuse?
-  var tmpPubPEM = contactList.getKey(destAddress).pubPEM;
-  var tmpCrypto = new NoxCrypto({'pubPEM': tmpPubPEM});
+  var tmpCrypto = new NoxCrypto({ 'pubPEM': contactList.getKey(destAddress).pubPEM });
   var msgContent = {};
   msgContent.type = 'message';
   msgContent.from = myAddress;
@@ -161,8 +108,10 @@ function buildEncryptedMessage(destAddress, msgText) {
   msgContent.msgText = msgText;
   msgObj = {};
   msgObj.content = msgContent;
+  // sign using my private key
   msgObj.signature = myCrypto.signString(JSON.stringify(msgContent));
-  var encryptedData = encrypt(tmpCrypto, JSON.stringify(msgObj));
+  // encrypt using recipients public key
+  var encryptedData = tmpCrypto.encrypt(JSON.stringify(msgObj));
   var encObj = {};
   encObj.content = {type: 'encryptedData', clearFrom: myAddress, data: encryptedData};
   return encObj;
@@ -312,7 +261,7 @@ function processMessage(msg) {
   switch (content.type) {
     case 'introduction':
       var signature = msgObj.signature;
-      var tmpCrypto = new NoxCrypto({'pubPEM': content.pubPEM});
+      var tmpCrypto = new NoxCrypto({ 'pubPEM': content.pubPEM });
       if (tmpCrypto.signatureVerified(JSON.stringify(content), signature)) {
         console.log('[process message] Introduction is properly signed.');
         // TODO enhance from address checking, for now, not null or undefined, and not myAddress
@@ -327,7 +276,7 @@ function processMessage(msg) {
       break;
     case 'encryptedData':
       console.log('Encrypted Data: ', content.data);
-      var decObj = JSON.parse(decrypt(content.data));
+      var decObj = JSON.parse(myCrypto.decrypt(content.data));
       console.log('Decrypted Data: ', decObj);
       var content = decObj.content;
       var signature = decObj.signature;
