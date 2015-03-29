@@ -11,7 +11,7 @@ body,html {
 }
 
 #sideBar{
-  border-right: 1px solid;
+  border-right: 1px solid #B6B6B6;
   padding-right: 0px;
   padding-bottom: 0px;
 }
@@ -23,9 +23,10 @@ body,html {
 }
 
 #userInformationContainer {
-  border-bottom: 1px solid;
-  background-color: #66A3FF;
+  border-bottom: 1px solid #B6B6B6;
+  background-color: #303f9f;
   padding: 5px;
+  color: white;
 }
 
 #userInformationHeader h5{
@@ -39,7 +40,7 @@ body,html {
 }
 
 #contactsContainer {
-  background-color: #E6F0FF;
+  background-color: #c5cae9;
   padding: 5px;
 }
 
@@ -50,6 +51,7 @@ body,html {
 #contactsHeader h6 {
   display:inline-block;
   font-weight:bold;
+  color: #212121
 }
 
 #addContactButton {
@@ -67,7 +69,7 @@ body,html {
 #newContactFormContainer {
   display: none;
   padding: 5px;
-  border-bottom: solid 1px;
+  border-bottom: solid 1px #B6B6B6;
 }
 
 #newContactFormButtons {
@@ -76,8 +78,9 @@ body,html {
 
 #contactRequestContainer {
   display: none;
-  border-bottom: solid 1px;
-  background-color: #FFD700;
+  border-bottom: solid 1px #B6B6B6;
+  background-color: #ff9800;
+  color: #212121;
 }
 #contactRequestHeader {
   padding: 5px;
@@ -88,16 +91,19 @@ body,html {
 }
 
 .pendingContactRequest:hover {
-  background-color: #66CCFF;
+  background-color: #448aff;
   cursor: pointer;
+  color: white;
 }
 
 .contact {
   padding: 8px;
+  color: #212121;
 }
 
 .contact:hover {
-  background-color: #66CCFF;
+  background-color: #448aff;
+  color: white;
   cursor: pointer;
 }
 
@@ -144,6 +150,7 @@ body,html {
 .nickTextInput {
   width: 65%;
   padding: 0px;
+  color: #212121;
 }
 
 .chatContainer {

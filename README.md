@@ -69,3 +69,5 @@ request' process which facilitates the exchange of public keys.
 The current version has been tested on OSX
 ####Windows
 noxious has been successfully built on Windows.  Instructions are forthcoming.
+###Support
+Please submit and issue.  We can also be reached at #noxious on freenode.
