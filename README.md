@@ -51,6 +51,10 @@ Linux 32  | build_ia32.sh
 OSX       | build_darwin.sh
 
 At the end of the script execution, you should see 'gyp info ok'.
+
+note: if you already have atom-shell installed on your system, the build scripts
+expect you to have at least v0.22.1.  You may upgrade atom-shell or modify the
+'target' specified in the build script as appropriate.
 #####Run noxious
 From inside the noxious folder do:
 ```
