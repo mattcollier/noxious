@@ -6,7 +6,7 @@ All communications are conducted between [tor hidden services](https://www.torpr
 
 ##Secure
 In addition to the encryption offered by the tor hidden service protocol, all chat messages are
-public-key encrypted using a 2048 bit key.  All cryto is handled by native OpenSSL libraries via
+RSA public-key encrypted using a 3072 bit key.  All cryto is handled by native OpenSSL libraries via
 the [node ursa module](https://github.com/quartzjer/ursa).
 
 ##Platform

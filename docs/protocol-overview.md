@@ -13,7 +13,7 @@ location.  At the time of this writing, ALL traffic passing over the Tor network
 is encrypted using the RSA algorithm using a 1024 bit key.
 ###Message Encryption
 All Noxious chat messages are digitally signed, then encrypted using the RSA
-algorithm using a #### bit key before they are passed to the Tor network for
+algorithm using a 3072 bit key before they are passed to the Tor network for
 delivery.  The public key is used to encrypt the message and only the person
 possessing the matching private key will be able to decrypt the message.  Before
 encryption, the message message, including the senders Tor hidden service name
