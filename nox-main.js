@@ -154,8 +154,8 @@ var server = http.createServer(function (req, res){
         var status = preProcessMessage(reqBody);
         switch(status.code) {
           case 200:
-            res.writeHead(200, {'Content-Type': 'text/html'});
-            res.write('Thank you, come again.');
+            res.writeHead(200, {'Content-Type': 'application/json'});
+            res.write(JSON.stringify( { status: 'OK' }));
             break;
           case 409:
             res.writeHead(409, {'Content-Type': 'application/json'});
