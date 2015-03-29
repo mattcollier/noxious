@@ -20,6 +20,7 @@ function NoxCrypto (obj) {
     // object has public Key
     this.pubPEM=obj.pubPEM;
     this.myPubKey = ursa.createPublicKey(this.pubPEM, 'base64');
+    this.keySize = this.myPubKey.getModulus().length*8;
   } else {
     // assume it's a dataDir and filename
     keyData = new Object2File(obj.dataDir, obj.fileName);
@@ -39,9 +40,9 @@ function NoxCrypto (obj) {
       // make a public key, to be used for encryption
       this.pubPEM = this.myPrivKey.toPublicPem('base64');
       this.myPubKey = ursa.createPublicKey(this.pubPEM, 'base64');
+      this.keySize = this.myPubKey.getModulus().length*8;
     }).bind(this));
   }
-  this.keySize = this.myPubKey.getModulus().length * 8;
 }
 
 NoxCrypto.prototype.encrypt = function(plainText) {
