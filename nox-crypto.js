@@ -11,7 +11,7 @@ function NoxCrypto (obj) {
   this.myPubKey='';
   // TODO this var currently only informs encryption, size is not currently saved with key!
   // this should be user configurable, and then saved as part of the key object.
-  this.keySize=2048;
+  this.keySize=3072;
   var keys, privPEM;
 
   // accepts either dir, filename or public key
@@ -30,7 +30,7 @@ function NoxCrypto (obj) {
 
       } else {
         // key was not on disk, create a new one
-        keys = ursa.generatePrivateKey(2048, 65537);
+        keys = ursa.generatePrivateKey(this.keySize, 65537);
         privPEM = keys.toPrivatePem('base64');
         keyData.addKey('PEM', privPEM);
       }
