@@ -43,7 +43,10 @@ NoxClient.prototype.transmitObject = function (destAddress, msg, cb) {
       //console.log(res.statusCode, res.headers);
       //console.log(body);
       if(cb && typeof(cb) == 'function') {
-        cb(res.statusCode);
+        var response = {};
+        response.status = res.statusCode;
+        response.body = JSON.parse(body);
+        cb(response);
       }
     });
   });

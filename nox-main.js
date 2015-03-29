@@ -151,23 +151,29 @@ var server = http.createServer(function (req, res){
         }
       });
       req.on('end', function() {
-        switch(preProcessMessage(reqBody)) {
+        var status = preProcessMessage(reqBody);
+        switch(status.code) {
           case 200:
             res.writeHead(200, {'Content-Type': 'text/html'});
-            processMessage(reqBody);
+            res.write('Thank you, come again.');
             break;
           case 409:
-            res.writeHead(409, {'Content-Type': 'text/html'});
+            res.writeHead(409, {'Content-Type': 'application/json'});
+            res.write(JSON.stringify({ reason: status.reason }));
             break;
           case 410:
-            res.writeHead(410, {'Content-Type': 'text/html'});
+            res.writeHead(410, {'Content-Type': 'application/json'});
+            res.write(JSON.stringify({ reason: status.reason }));
             break;
           case 403:
-            res.writeHead(403, {'Content-Type': 'text/html'});
+            res.writeHead(403, {'Content-Type': 'application/json'});
+            res.write(JSON.stringify({ reason: status.reason }));
             break;
         }
-        res.write('Thank you, come again.');
         res.end();
+        if(status.code == 200) {
+          processMessage(reqBody);
+        }
       });
     }
   }
@@ -212,7 +218,9 @@ function registerContactRequest(req) {
 
 function preProcessMessage(msg) {
   // default statusCode = forbidden;
-  var statusCode = 403;
+  var status = {};
+  status.code = 403;
+  status.reason = '';
   msgObj = JSON.parse(msg);
   console.log('[preprocessing message] Start');
   // TODO this function should verify message integrity
@@ -226,15 +234,31 @@ function preProcessMessage(msg) {
             if(contactList.getKey(content.from) === undefined &&
               contactRequestList.getKey(content.from) === undefined) {
               // we don't know this person already, intro is OK
-              statusCode = 200;
+              status.code = 200;
             } else if (contactRequestList.getKey(content.from) !== undefined &&
               contactRequestList.getKey(content.from)['direction'] == 'outgoing' &&
               contactRequestList.getKey(content.from)['status'] == 'delivered') {
               // we're expecting to hear back from this person, intro is OK
-              statusCode = 200;
+              status.code = 200;
             } else {
               // contact request (key exchange) process needs to be repeated.
-              statusCode = 409;
+              status.code = 409;
+            }
+          }
+          if (status.code == 200) {
+            // so far so good, but now check the pubkey, reset status code
+            status.code = 403;
+            var minKeySize = 3072;
+            var tmpCrypto = new NoxCrypto({ 'pubPEM': content.pubPEM });
+            var keySize = tmpCrypto.keySize;
+            console.log('[preprocessing message] The key size is ', keySize, 'bits.');
+            if (keySize < minKeySize) {
+              console.log('[preprocessing message] The key must be at least ', minKeySize, ' bits');
+              status.code = 409;
+              status.reason = 'EKEYSIZE';
+            } else {
+              console.log('[preprocessing message] The key size meets the ', minKeySize, 'bit requirement');
+              status.code = 200;
             }
           }
           break;
@@ -242,17 +266,17 @@ function preProcessMessage(msg) {
           if (content.clearFrom !== undefined && content.clearFrom) {
             if(contactList.getKey(content.clearFrom)) {
               // this is from an existing contact, it's OK
-              statusCode = 200;
+              status.code = 200;
             } else {
               // there is no public key for this contact
-              statusCode = 410;
+              status.code = 410;
             }
           }
           break;
       }
     }
   }
-  return statusCode;
+  return status;
 }
 
 function processMessage(msg) {
@@ -385,8 +409,8 @@ app.on('ready', function() {
       case 'sendEncrypted':
         var encObj = buildEncryptedMessage(content.destAddress, content.msgText);
         dataTransmitDomain.run(function() {
-          myNoxClient.transmitObject(content.destAddress, encObj, function(status) {
-            switch(status) {
+          myNoxClient.transmitObject(content.destAddress, encObj, function(res) {
+            switch(res.status) {
               case 200:
                 // sent OK, update GUI
                 var msgObj = {};
@@ -421,8 +445,8 @@ app.on('ready', function() {
         // send a contact request to sender to provide pubKey
         updateRequestStatus(content.contactAddress, 'sending');
         contactRequestDomain.run(function() {
-          myNoxClient.transmitObject(content.contactAddress, buildContactRequest(content.contactAddress), function(status) {
-            if(status == 200) {
+          myNoxClient.transmitObject(content.contactAddress, buildContactRequest(content.contactAddress), function(res) {
+            if(res.status == 200) {
               // pull the info from the contactRequestList and make a new conact.
               contactList.addKey(content.contactAddress, contactRequestList.getKey(content.contactAddress));
               // remove the contact request and save
@@ -430,14 +454,23 @@ app.on('ready', function() {
               // for now, just reinit the contact lists
               getContacts();
               getContactRequests();
-            } else if (status == 409) {
+            } else if (res.status == 409) {
               // this can occur in a case where a successfully transmitted contact
               // request is deleted before a reply is sent.
               updateRequestStatus(content.contactAddress, 'failed');
               var msgObj = {};
               msgObj.method = 'error';
-              msgObj.content = { type: 'contact',
-                message: 'The recipient already has your contact information.  Ask them to delete your contact information and try again.'};
+              var failedReason = res.body['reason'];
+              switch (failedReason) {
+                case 'EKEYSIZE':
+                  msgObj.content = { type: 'contact',
+                    message: 'The contact request was rejected because your public encryption key is not proper.  Please upgrade your Noxious software.'};
+                  break;
+                default:
+                  msgObj.content = { type: 'contact',
+                    message: 'The recipient already has your contact information.  Ask them to delete your contact information and try again.'};
+                  break;
+              }
               notifyGUI(msgObj);
             }
           });
@@ -473,8 +506,8 @@ app.on('ready', function() {
           notifyGUI(msgObj);
         } else {
           contactRequestDomain.run(function() {
-            myNoxClient.transmitObject(content.contactAddress, buildContactRequest(content.contactAddress), function(status) {
-              switch(status) {
+            myNoxClient.transmitObject(content.contactAddress, buildContactRequest(content.contactAddress), function(res) {
+              switch(res.status) {
                 case 200:
                   updateRequestStatus(content.contactAddress, 'delivered');
                   break;
@@ -482,8 +515,17 @@ app.on('ready', function() {
                   updateRequestStatus(content.contactAddress, 'failed');
                   var msgObj = {};
                   msgObj.method = 'error';
-                  msgObj.content = { type: 'contact',
-                    message: 'The recipient already has your contact information.  Ask them to delete your contact information and try again.'};
+                  var failedReason = res.body['reason'];
+                  switch (failedReason) {
+                    case 'EKEYSIZE':
+                      msgObj.content = { type: 'contact',
+                        message: 'The contact request was rejected because your public encryption key is not proper.  Please upgrade your Noxious software.'};
+                      break;
+                    default:
+                      msgObj.content = { type: 'contact',
+                        message: 'The recipient already has your contact information.  Ask them to delete your contact information and try again.'};
+                      break;
+                  }
                   notifyGUI(msgObj);
                   break;
               }
