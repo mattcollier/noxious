@@ -101,6 +101,7 @@ function updateRequestStatus(contactAddress, status) {
 function buildEncryptedMessage(destAddress, msgText) {
   // TODO should crypto objects be stored in an array for reuse?
   var tmpCrypto = new NoxCrypto({ 'pubPEM': contactList.getKey(destAddress).pubPEM });
+  console.log('PubKey Modulus: ', tmpCrypto.myPubKey.getModulus().length*8);
   var msgContent = {};
   msgContent.type = 'message';
   msgContent.from = myAddress;
