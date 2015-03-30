@@ -16,10 +16,10 @@ class Messaging{
     try {
       Message = JSON.parse(Message);
     } catch(error){return ToReturn}
+
     Debug("Messaging::Process Decoding Message");
-    if(!Message.content) return ToReturn;
+    if(!Message.content || !Message.content.type) return ToReturn;
     Message = Message.content;
-    if(!Message.type) return ToReturn;
 
     if(Message.type === 'introduction'){
       Messaging.Introduction(Message, ToReturn);
