@@ -2,6 +2,7 @@
 "use strict";
 
 var
+  App = require('App'),
   HTTP = require('http'),
   Debug = require('debug')('noxious:app'),
 
@@ -15,6 +16,9 @@ var
 
 class Main{
   static Init(){
+    App.setName("noxious");
+    App.setPath('userData', Path.join(App.getPath('appData'), App.getName()));
+    App.setPath('userCache', Path.join(App.getPath('cache'), App.getName()));
     Main.CreateServer();
   }
   static CreateServer(){
