@@ -2,7 +2,7 @@
   "name": "noxious",
   "version": "0.0.4-alpha",
   "description": "secure anonymous instant messaging client built on atom-shell",
-  "main": "nox-main.js",
+  "main": "App/Init",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
