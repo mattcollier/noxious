@@ -3,7 +3,10 @@
 
 var
   HTTP = require('http'),
-  Debug = require('debug')('noxious'),
+  Debug = require('debug')('noxious:app'),
+
+  H = require('./H'),
+  Messaging = require('./Messaging'),
 
   Server = null,
   Config = {
@@ -20,8 +23,14 @@ class Main{
         Resource.writeHead(200, {'Content-Type': 'text/plain'});
         Resource.end('Hello world!');
         return ;
-      } else if(Request.method !== 'Post' || Request.url !== '/') return ;
-
+      } else if(Request.method !== 'POST' || Request.url !== '/'){
+        Resource.writeHead(400, {'Content-Type': 'text/plain'});
+        Resource.end('Hello world!');
+        return ;
+      }
+      H.ReadStream(Request).then(function(Data){
+        console.log(Data);
+      });
     });
     Server.listen(Config.ServerPort, '127.0.0.1');
     Debug(`Main::CreateServer listening on localhost:${Config.ServerPort}`);
