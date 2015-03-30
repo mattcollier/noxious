@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/mattcollier/noxious",
   "dependencies": {
+    "debug": "latest",
     "socksv5": "0.0.4",
     "ths": "git+https://github.com/Mowje/node-ths.git",
     "ursa": "git+https://github.com/quartzjer/ursa.git"
