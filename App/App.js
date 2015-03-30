@@ -33,7 +33,15 @@ class Main{
         return ;
       }
       H.ReadStream(Request).then(function(Data){
-        console.log(Data);
+        var Info = Messaging.Process(Data);
+        Resource.writeHead(Info.Code, {'Content-Type': 'application/json'});
+        if(Info.Code === 20){
+          Resource.write(JSON.stringify({status: 'OK'}));
+        } else {
+          Resource.write(JSON.stringify({reason: Info.Reason}));
+        }
+        Resource.end();
+        // TODO: Notify the UI
       });
     });
     Server.listen(Config.ServerPort, '127.0.0.1');
