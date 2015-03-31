@@ -9,17 +9,19 @@ var
 
   H = require('./H'),
   Messaging = require('./Messaging'),
+  ConfigFile = require('./ConfigFile');
 
+App.setName("noxious");
+App.setPath('userData', Path.join(App.getPath('appData'), App.getName()));
+App.setPath('userCache', Path.join(App.getPath('cache'), App.getName()));
+
+var
   Server = null,
-  Config = {
-    ServerPort: 1111
-  };
+  Contacts = new ConfigFile('Set', Path.join(App.getPath('userData'), 'Contacts.json'), []),
+  Config = new ConfigFile('Map', Path.join(App.getPath('userData'), 'Config.json'), [['ServerPort', 1111]]);
 
 class Main{
   static Init(){
-    App.setName("noxious");
-    App.setPath('userData', Path.join(App.getPath('appData'), App.getName()));
-    App.setPath('userCache', Path.join(App.getPath('cache'), App.getName()));
     Main.CreateServer();
   }
   static CreateServer(){
@@ -45,8 +47,8 @@ class Main{
         // TODO: Notify the UI
       });
     });
-    Server.listen(Config.ServerPort, '127.0.0.1');
-    Debug(`Main::CreateServer listening on localhost:${Config.ServerPort}`);
+    Server.listen(Config.get('ServerPort'), '127.0.0.1');
+    Debug(`Main::CreateServer listening on localhost:${Config.get('ServerPort')}`);
   }
 }
 Main.Init();
