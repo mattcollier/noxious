@@ -12,5 +12,12 @@ class H{
       });
     });
   }
+  static ForEach(Object, Callback){
+    for(var I in Object){
+      if(Object.hasOwnProperty(I) && I !== 'length'){
+        Callback.call(Object[I], Object[I], I, Object);
+      }
+    }
+  }
 }
 module.exports = H;
