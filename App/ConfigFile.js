@@ -2,7 +2,8 @@
 
 "use strict";
 var
-  FS = require('fs');
+  FS = require('fs'),
+  Debug = require('debug')('noxious:config');
 class ConfigFile{
   constructor(Type, Path, Default){
     this.Type = Type;
@@ -22,8 +23,8 @@ class ConfigFile{
     } else {
       this.Collection.forEach((Value) => ToWrite.push(Value));
     }
-    console.log(this.Path);
     FS.writeFile(this.Path, JSON.stringify(ToWrite));
+    Debug(`ConfigFile::Write writing to ${this.Path}`);
   }
   get(Key){return this.Collection.get(Key)}
   has(Key){return this.Collection.has(Key)}
