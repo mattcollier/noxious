@@ -2,7 +2,7 @@
   "name": "noxious",
   "version": "0.0.4-alpha",
   "description": "secure anonymous instant messaging client built on atom-shell",
-  "main": "nox-main.js",
+  "main": "App/Init",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -17,9 +17,7 @@
   },
   "homepage": "https://github.com/mattcollier/noxious",
   "dependencies": {
-    "atom-shell": "git+https://github.com/atom/atom-shell.git",
-    "bootstrap": "^3.3.2",
-    "jquery": "^2.1.3",
+    "debug": "latest",
     "socksv5": "0.0.4",
     "ths": "git+https://github.com/Mowje/node-ths.git",
     "ursa": "git+https://github.com/quartzjer/ursa.git"
