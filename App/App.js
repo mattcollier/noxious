@@ -2,8 +2,9 @@
 "use strict";
 
 var
-  App = require('App'),
+  App = require('app'),
   HTTP = require('http'),
+  Path = require('path'),
   Debug = require('debug')('noxious:app'),
 
   H = require('./H'),
@@ -29,7 +30,7 @@ class Main{
         return ;
       } else if(Request.method !== 'POST' || Request.url !== '/'){
         Resource.writeHead(400, {'Content-Type': 'text/plain'});
-        Resource.end('Hello world!');
+        Resource.end('*cough* *cough*');
         return ;
       }
       H.ReadStream(Request).then(function(Data){
