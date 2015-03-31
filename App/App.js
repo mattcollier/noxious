@@ -9,7 +9,8 @@ var
 
   H = require('./H'),
   Messaging = require('./Messaging'),
-  ConfigFile = require('./ConfigFile');
+  ConfigFile = require('./ConfigFile'),
+  Renderer = require('./Renderer');
 
 App.setName("noxious");
 App.setPath('userData', Path.join(App.getPath('appData'), App.getName()));
@@ -22,6 +23,8 @@ var
 
 class Main{
   static Init(){
+    Main.Renderer = new Renderer;
+    Main.H = H;
     Main.CreateServer();
   }
   static CreateServer(){
@@ -51,4 +54,7 @@ class Main{
     Debug(`Main::CreateServer listening on localhost:${Config.get('ServerPort')}`);
   }
 }
-Main.Init();
+
+module.exports = Main;
+
+App.on('ready', Main.Init);
