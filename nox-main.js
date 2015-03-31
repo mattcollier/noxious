@@ -54,7 +54,6 @@ contactRequestDomain.on('error', function(err){
 });
 
 function notifyGUI(msg) {
-  // TODO, needs improvement?
   if(!mainWindow.webContents.isLoading()) {
     mainWindow.webContents.send(msg.method, msg.content);
   }
@@ -62,6 +61,15 @@ function notifyGUI(msg) {
 
 function isEmptyObject(obj) {
   return !Object.keys(obj).length;
+}
+
+function isValidTorHiddenServiceName (name) {
+  var toReturn = false;
+  if (name.search(/^[a-zA-Z2-7]{16}\.onion$/) != -1) {
+    // it matched
+    toReturn = true;
+  }
+  return toReturn;
 }
 
 function getContacts(forceReload) {
@@ -99,9 +107,7 @@ function updateRequestStatus(contactAddress, status) {
 }
 
 function buildEncryptedMessage(destAddress, msgText) {
-  // TODO should crypto objects be stored in an array for reuse?
   var tmpCrypto = new NoxCrypto({ 'pubPEM': contactList.getKey(destAddress).pubPEM });
-  console.log('PubKey Modulus: ', tmpCrypto.myPubKey.getModulus().length*8);
   var msgContent = {};
   msgContent.type = 'message';
   msgContent.from = myAddress;
@@ -208,7 +214,6 @@ function registerContactRequest(req) {
     console.log('[contact] Contact Request Accepted');
     contactList.addKey(req.from, tmpObj);
     contactRequestList.delKey(req.from);
-    // TODO fancy GUI work goes here, for now, just reinit both lists
     getContacts();
     getContactRequests();
   } else if(contactRequestList.getKey(req.from)) {
@@ -229,8 +234,7 @@ function preProcessMessage(msg) {
     if (content.type !== undefined) {
       switch (content.type) {
         case 'introduction':
-          if (content.from !== undefined && content.from) {
-            // TODO add address validation
+          if (content.from !== undefined && content.from && isValidTorHiddenServiceName(content.from)) {
             if(contactList.getKey(content.from) === undefined &&
               contactRequestList.getKey(content.from) === undefined) {
               // we don't know this person already, intro is OK
@@ -306,9 +310,6 @@ function processMessage(msg) {
       var content = decObj.content;
       var signature = decObj.signature;
       // TODO additional integrity checks
-      // if a message is sent by someone who has my public key, but I no longer have theirs the
-      // message will still arrive here, but it will not be possible to verify the signature.
-      // do we have a public key for this sender?
       if (content.to && content.from && content.type && content.msgText) {
         if (contactList.getKey(content.from)) {
           switch (content.type) {
@@ -386,7 +387,7 @@ app.on('ready', function() {
   // Create the browser window.
   mainWindow = new BrowserWindow({width: 900, height: 600});
 //  mainWindow = new BrowserWindow({width: 900, height: 600, 'web-preferences': {'overlay-scrollbars': true}});
-//  mainWindow.openDevTools();
+  mainWindow.openDevTools();
 
   ths.start(false, function () {
     console.log("tor Started!");

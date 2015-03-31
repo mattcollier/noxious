@@ -21,6 +21,15 @@
 
       var ipc = require('ipc');
 
+      function isValidTorHiddenServiceName (name) {
+        var toReturn = false;
+        if (name.search(/^[a-zA-Z2-7]{16}\.onion$/) != -1) {
+          // it matched
+          toReturn = true;
+        }
+        return toReturn;
+      }
+
       function notifyAtom(msg) {
         ipc.send(msg.method, msg.content);
       }
@@ -255,7 +264,7 @@
         var statusClass = '';
         if (authorAddress == myAddress) {
           displayName = 'me';
-          statusClass = 'chatSending';          
+          statusClass = 'chatSending';
         } else {
           displayName = $('#contact_' + contactAddress).data('displayname');
         }
@@ -469,12 +478,16 @@
         $('#sendContactRequestButton').click(function () {
           // TODO validation on onion address
           var contactAddress = $('#newContactAddressText').val() + '.onion';
-          var msgObj = {};
-          msgObj.method = 'contact';
-          msgObj.content = {type: 'sendContactRequest', contactAddress: contactAddress};
-          notifyAtom(msgObj);
-          $('#newContactAddressText').val('');
-          $('#newContactFormContainer').slideUp('fast');
+          if (isValidTorHiddenServiceName(contactAddress)) {
+            var msgObj = {};
+            msgObj.method = 'contact';
+            msgObj.content = {type: 'sendContactRequest', contactAddress: contactAddress};
+            notifyAtom(msgObj);
+            $('#newContactAddressText').val('');
+            $('#newContactFormContainer').slideUp('fast');
+          } else {
+            alert('The Chat ID you have entered is invalid.  A valid ID is 16 characters long and contains the letters a-z and the numbers 2-7, inclusive.');
+          }
         });
 
         // Cancel Contact Request
