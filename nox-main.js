@@ -267,7 +267,7 @@ function preProcessMessage(msg) {
           }
           break;
         case 'encryptedData':
-          if (content.clearFrom !== undefined && content.clearFrom) {
+          if (content.clearFrom !== undefined && content.clearFrom && isValidTorHiddenServiceName(content.clearFrom)) {
             if(contactList.getKey(content.clearFrom)) {
               // this is from an existing contact, it's OK
               status.code = 200;
@@ -310,7 +310,7 @@ function processMessage(msg) {
       var content = decObj.content;
       var signature = decObj.signature;
       // TODO additional integrity checks
-      if (content.to && content.from && content.type && content.msgText) {
+      if (content.to && content.from && isValidTorHiddenServiceName(content.from) && content.type && content.msgText) {
         if (contactList.getKey(content.from)) {
           switch (content.type) {
             case 'message':
