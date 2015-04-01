@@ -17,12 +17,17 @@ noxious is built on the [Atom Shell Framework](https://github.com/atom/atom-shel
 
 ###Operating System Support
 
-####Linux
-The current version has been tested on 32bit and 64bit version of Debian Linux.
+The current version has been tested on 32bit and 64bit version of Debian Linux, OSX 64bit, and Windows 32bit.
 #####Build Instructions
-######OS Dependencies
+######Linux OS Dependencies
 ```
 apt-get install tor build-essential libssl-dev git
+```
+######OSX OS Dependencies
+```
+brew install openssl
+brew install tor
+brew install git
 ```
 ######io.js
 [Get io.js here.](https://iojs.org/en/index.html), and you can install it based on
