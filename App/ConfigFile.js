@@ -26,11 +26,12 @@ class ConfigFile{
     FS.writeFile(this.Path, JSON.stringify(ToWrite));
     Debug(`ConfigFile::Write writing to ${this.Path}`);
   }
+  add(Value){this.Collection.add(Value); this.Write();}
   get(Key){return this.Collection.get(Key)}
   has(Key){return this.Collection.has(Key)}
-  set(Key,Value){this.Collection.set(Key, Value)}
-  delete(Key){this.Collection.delete(Key)}
-  clear(){this.Collection.clear()}
+  set(Key,Value){this.Collection.set(Key, Value); this.Write();}
+  delete(Key){this.Collection.delete(Key); this.Write();}
+  clear(){this.Collection.clear(); this.Write();}
   forEach(Callback, thisArg){this.Collection.forEach(Callback, thisArg)}
 }
 module.exports = ConfigFile;
