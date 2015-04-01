@@ -32,6 +32,7 @@ manager will be included with the other io.js binaries.
 Once you have a working npm installation, **as root**, installing the following modules globally with the following command:
 ```
 npm install node-gyp -g
+npm install atom-shell -g
 ```
 ######Clone and build
 Next, as a **regular user**, clone this repository into the folder of your choice:
