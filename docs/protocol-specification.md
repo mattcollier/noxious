@@ -14,8 +14,13 @@ to verify the signature utilizing the provided public key, which insures that th
 contents of the introduction message have not been altered in transit.
 ```
 {
-  type: "a",
-  content: "b"
+  content: {
+      type: 'introduction',
+      from: 'f5jya7neu64cmhuz.onion',
+      to: 'cniymubgqjzckk3s.onion',
+      pubPEM: '<publicKey>'
+    }
+  signature: '<digitalSignature>'
 }
 ```
 
