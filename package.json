@@ -20,7 +20,7 @@
     "bootstrap": "^3.3.2",
     "jquery": "^2.1.3",
     "socksv5": "0.0.4",
-    "ths": "git+https://github.com/Mowje/node-ths.git",
+    "ths": "git+https://github.com/Mowje/node-ths.git#dev",
     "ursa": "git+https://github.com/quartzjer/ursa.git"
   },
   "scripts": {"start": "atom-shell ."}

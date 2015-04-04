@@ -3,6 +3,25 @@ body,html {
   overflow: hidden;
 }
 
+#startupOverlay {
+  opacity: 0.85;
+  position: absolute;
+  top: 0;
+  left: 0;
+  background-color: white;
+  width: 100%;
+  z-index: 5000;
+}
+
+#progressBar {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  width: 300px;
+  z-index: 6000;
+}
+
+
 #mainContainer {
 }
 

@@ -50,6 +50,15 @@
             // global
             myAddress = chatId.address;
             $('#chatID').html(myAddress);
+            // once the chat ID is availabe, noxious is ready for action
+            // remove the overlay and progress bar
+            $('#progressBar').remove();
+            $('#startupOverlay').hide('slow', function() {
+              $(this).remove();
+            })
+            break;
+          case 'bootstrap':
+            $('.progress-bar').css('width', msg.content+'%').attr('aria-valuenow', msg.content);
             break;
         }
       });
@@ -461,6 +470,11 @@
       }).resize();
 
       $(document).ready(function() {
+        // set the startup overlay height to 100% of window size
+        $('#startupOverlay').css('height', $(window).height());
+        // center the progress bar
+        $('#progressBar').css('top', ($(window).height() / 2) - 20);
+        $('#progressBar').css('left', ($(window).width() / 2) - 150);
         // set chat window height based on the window size
         $('#chatContainer').css('height', $(window).height() - 80);
         // Create container for system messages
@@ -503,6 +517,12 @@
   <!--  We are using node.js <script>document.write(process.version)</script>
     and atom-shell <script>document.write(process.versions['atom-shell'])</script>.
   -->
+    <div id='startupOverlay'></div>
+    <div id='progressBar' class="progress">
+      <div class="progress-bar progress-bar-info" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 0%">
+        <span class="sr-only">0% Complete</span>
+      </div>
+    </div>
     <div id='mainContainer' class='container-fluid height100'>
       <div class='row height100'>
         <div id='sideBar' class='col-sm-3 height100'>
