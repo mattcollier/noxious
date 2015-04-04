@@ -374,11 +374,10 @@ function startHiddenService() {
 
 // track ths / tor bootstrapping
 ths.on('bootstrap', function(state) {
-  console.log('ths bootstrap state: ', state);
   var msgObj = {};
   msgObj.method = 'status';
   msgObj.content = { type:'bootstrap', content: state };
-  notifyGUI(msgObj); 
+  notifyGUI(msgObj);
 });
 
 // Quit when all windows are closed.

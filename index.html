@@ -53,7 +53,7 @@
             // once the chat ID is availabe, noxious is ready for action
             // remove the overlay and progress bar
             $('#progressBar').remove();
-            $('#startupOverlay').hide('slow', function() {
+            $('#startupOverlay').fadeOut('slow', function() {
               $(this).remove();
             })
             break;
