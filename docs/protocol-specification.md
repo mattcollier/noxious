@@ -12,6 +12,13 @@ begin sending and receiving encrypted messages.  The contents of the introductio
 are digitally signed with the sending parties private key.  The recipient is able
 to verify the signature utilizing the provided public key, which insures that the
 contents of the introduction message have not been altered in transit.
+```
+{
+  type: "a",
+  content: "b"
+}
+```
+
 
 
 ####encryptedData Messages
