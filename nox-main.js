@@ -6,6 +6,10 @@ var Object2File = require(__dirname + '/object2file.js');
 var NoxClient = require(__dirname + '/nox-client.js');
 var myNoxClient = new NoxClient();
 
+// cononical json.stringify
+// This is used to stringify objects in a consistent way prior to hashing/signing
+var Canon = require('canonical-json');
+
 var dataDir = __dirname + '/noxious-data';
 var contactList = new Object2File(dataDir, 'contacts.json');
 var contactRequestList = new Object2File(dataDir, 'contact-requests.json');
@@ -116,7 +120,7 @@ function buildEncryptedMessage(destAddress, msgText) {
   msgObj = {};
   msgObj.content = msgContent;
   // sign using my private key
-  msgObj.signature = myCrypto.signString(JSON.stringify(msgContent));
+  msgObj.signature = myCrypto.signString(Canon.stringify(msgContent));
   // encrypt using recipients public key
   var encryptedData = tmpCrypto.encrypt(JSON.stringify(msgObj));
   var encObj = {};
@@ -130,7 +134,7 @@ function buildContactRequest(destAddress) {
   introObj.from = myAddress;
   introObj.to = destAddress;
   introObj.pubPEM = myCrypto.pubPEM;
-  var signature = myCrypto.signString(JSON.stringify(introObj));
+  var signature = myCrypto.signString(Canon.stringify(introObj));
   var msgObj = {};
   msgObj.content = introObj;
   msgObj.signature = signature;
@@ -291,7 +295,7 @@ function processMessage(msg) {
     case 'introduction':
       var signature = msgObj.signature;
       var tmpCrypto = new NoxCrypto({ 'pubPEM': content.pubPEM });
-      if (tmpCrypto.signatureVerified(JSON.stringify(content), signature)) {
+      if (tmpCrypto.signatureVerified(Canon.stringify(content), signature)) {
         console.log('[process message] Introduction is properly signed.');
         // TODO enhance from address checking, for now, not null or undefined, and not myAddress
         if (content.to==myAddress && content.from!==undefined && content.from && content.from!==myAddress) {
@@ -315,7 +319,7 @@ function processMessage(msg) {
           switch (content.type) {
             case 'message':
               var tmpCrypto = new NoxCrypto({'pubPEM': contactList.getKey(content.from).pubPEM});
-              if (tmpCrypto.signatureVerified(JSON.stringify(content), signature)) {
+              if (tmpCrypto.signatureVerified(Canon.stringify(content), signature)) {
                 console.log('[process message] Message is properly signed.');
                 if (content.to==myAddress && content.from!==undefined && content.from && content.from!==myAddress) {
                   console.log('[process message] Message is properly addressed.');
