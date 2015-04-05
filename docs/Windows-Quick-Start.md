@@ -4,11 +4,11 @@ This guide is a work in progress, and is intended to be a quick start to getting
 #### Install git from http://git-scm.com/download/win ####
 - During the installation make sure you choose the option *Use Git from the Windows Command Prompt* as this will add git to your path. *note* you'll need to close out of any active command prompts and reopen for this change to take effect.
 
-Install Tor from https://dist.torproject.org/win32/
-The current latest available installation package is https://dist.torproject.org/win32/tor-0.2.4.23-win32.exe
+#### Install Tor from https://dist.torproject.org/win32/ ####
+- The current latest available installation package is https://dist.torproject.org/win32/tor-0.2.4.23-win32.exe
 
-Add tor to path. Here's an article on how to accomplish this task:
-http://www.howtogeek.com/118594/how-to-edit-your-system-path-for-easy-command-line-access/
+#### Add tor to path. Here's an article on how to accomplish this task: ####
+- http://www.howtogeek.com/118594/how-to-edit-your-system-path-for-easy-command-line-access/
 
 Install python 2.x from https://www.python.org/ftp/python/2.7.9/python-2.7.9.amd64.msi
 
