@@ -44,6 +44,8 @@ the [canonical-json module][CJ] is used to stringify the properties of the 'cont
 object in **alphabetical order** as shown in the example above.
 
 ####encryptedData Messages
+Parties may begin sending 'encryptedData' messages after they have exchanged
+public keys by way of sending and receiving 'introduction' messages.
 ```
 {
   content: {
