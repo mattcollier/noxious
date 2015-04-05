@@ -15,15 +15,20 @@ contents of the introduction message have not been altered in transit.
 ```
 {
   content: {
-      type: 'introduction',
-      from: 'f5jya7neu64cmhuz.onion',
-      to: 'cniymubgqjzckk3s.onion',
-      pubPEM: '<publicKey>'
-    }
+    from: 'f5jya7neu64cmhuz.onion',
+    pubPEM: '<publicKey>',
+    to: 'cniymubgqjzckk3s.onion',
+    type: 'introduction'
+  }
   signature: '<digitalSignature>'
 }
 ```
-
-
+Name | Type | Required | Description
+---- | ---- | -------- | -----------
+content   | object    | true  |
+from      | property  | true  | Sender's Tor hidden service name
+pubPEM    | property  | true  | Sender's public key in PEM format
+to        | property  | true  | Recipient's Tor hidden service name
+type      | property  | true  | must equal 'introduction'
 
 ####encryptedData Messages
