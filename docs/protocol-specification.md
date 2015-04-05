@@ -98,8 +98,8 @@ object in **alphabetical order** as shown in the example above.
 
 ###Transmitting Messages
 Messages are transmitted to the recipient's Tor hidden service name with an HTTP
-POST request via Tor's socksv5 proxy.  See the [NoxClient transmitObject function][TOF]
-for an io.js implementation.
+POST request on port 1111 via Tor's socksv5 proxy.  See the
+[NoxClient transmitObject function][TOF] for an io.js implementation.
 
 [CJ]:https://www.npmjs.com/package/canonical-json
 [TOF]:https://github.com/mattcollier/noxious/blob/master/nox-client.js
