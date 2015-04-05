@@ -17,18 +17,20 @@ This guide is a work in progress, and is intended to be a quick start to getting
 - https://www.visualstudio.com/en-us/products/visual-studio-express-vs.aspx
 *note* The installer will take quite a bit of time to complete
 
-#### Install Microsoft Visual C++ 2008 Redistributable Package (x86)  http://www.microsoft.com/en-us/download/details.aspx?id=29
+#### Install Microsoft Visual C++ 2008 Redistributable Package (x86)      
+- http://www.microsoft.com/en-us/download/details.aspx?id=29
 
-#### Install Microsoft Visual C++ 2008 Redistributable Package (x64)  http://www.microsoft.com/en-us/download/details.aspx?id=15336
+#### Install Microsoft Visual C++ 2008 Redistributable Package (x64) 
+- http://www.microsoft.com/en-us/download/details.aspx?id=15336
 
-Install OpenSSL 32 and 64 bit versions taking all the default settings:
+#### Install OpenSSL 32 and 64 bit versions taking all the default settings:
 
 http://slproweb.com/download/Win32OpenSSL-1_0_1m.exe
 http://slproweb.com/download/Win64OpenSSL-1_0_1m.exe
 
-
-Install Node.js from https://nodejs.org/
-Open a command prompt and run the following commands
+#### Install Node.js and dependencies
+- https://nodejs.org/
+- Open a command prompt and run the following commands
 ````
 npm install atom-shell -g
 npm install node-gyp -g
