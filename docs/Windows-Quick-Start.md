@@ -17,7 +17,7 @@ This guide is a work in progress, and is intended to be a quick start to getting
 - https://www.visualstudio.com/en-us/products/visual-studio-express-vs.aspx
 *note* The installer will take quite a bit of time to complete
 
-####Install Microsoft Visual C++ 2008 Redistributable Package (x86) ####  - http://www.microsoft.com/en-us/download/details.aspx?id=29
+####Install Microsoft Visual C++ 2008 Redistributable Package (x86) #### http://www.microsoft.com/en-us/download/details.aspx?id=29
 
 #### Install Microsoft Visual C++ 2008 Redistributable Package (x64) #### http://www.microsoft.com/en-us/download/details.aspx?id=15336
 
