@@ -1,5 +1,7 @@
 Noxious Messaging Protocol Specification
 ==================================
+###Encryption and Digital Signatures
+All encryption and digital signatures are based on 3072 bit RSA public/private keys.
 ###Message Types
 There are two types of messages Noxious uses to communicate: introduction, and
 encryptedData.
@@ -26,10 +28,10 @@ contents of the introduction message have not been altered in transit.
 Name | Type | Required | Encoding | Description
 ---- | ---- | -------- | --------   | -----------
 content   | object    | true  |     |
-from      | property  | true  | utf-8   | Sender's Tor hidden service name
+from      | property  | true  | UTF-8   | Sender's Tor hidden service name
 pubPEM    | property  | true  | BASE64  | Sender's public key in PEM format
-to        | property  | true  | utf-8   | Recipient's Tor hidden service name
-type      | property  | true  | utf-8   | must equal 'introduction'
+to        | property  | true  | UTF-8   | Recipient's Tor hidden service name
+type      | property  | true  | UTF-8   | must equal 'introduction'
 signature | property  | true  | BASE64  | Digital signature based on a SHA256 hash of a stringified version of the content object.
 #####Signing the 'content' object
 The digital signature is based on a SHA256 hash of a stringified version of the
@@ -43,9 +45,15 @@ object in **alphabetical order** as shown in the example above.
 {
   content: {
     clearFrom: 'f5jya7neu64cmhuz.onion',
-    data: '<encrypted'
+    data: '<encryptedContent>',
+    type: 'encryptedData'
   }
 }
 ```
-
+Name | Type | Required | Encoding | Description
+---- | ---- | -------- | --------   | -----------
+content   | object    | true  |         |
+clearFrom | property  | true  | UTF-8   | Sender's Tor hidden service name
+data      | property  | true  | BASE64  | Encrypted message
+type      | property  | true  | UTF-8   | must equal 'encryptedData'
 [CJ]:https://www.npmjs.com/package/canonical-json
