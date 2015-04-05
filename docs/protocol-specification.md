@@ -23,14 +23,14 @@ contents of the introduction message have not been altered in transit.
   signature: '<digitalSignature>'
 }
 ```
-Name | Type | Required | Description
----- | ---- | -------- | -----------
-content   | object    | true  |
-from      | property  | true  | Sender's Tor hidden service name
-pubPEM    | property  | true  | Sender's public key in PEM format
-to        | property  | true  | Recipient's Tor hidden service name
-type      | property  | true  | must equal 'introduction'
-signature | property  | true  | Digital signature based on a SHA256 hash of a stringified version of the content object.
+Name | Type | Required | Encoding | Description
+---- | ---- | -------- | --------   | -----------
+content   | object    | true  |     |
+from      | property  | true  | utf-8   | Sender's Tor hidden service name
+pubPEM    | property  | true  | BASE64  | Sender's public key in PEM format
+to        | property  | true  | utf-8   | Recipient's Tor hidden service name
+type      | property  | true  | utf-8   | must equal 'introduction'
+signature | property  | true  | BASE64  | Digital signature based on a SHA256 hash of a stringified version of the content object.
 #####Signing the 'content' object
 The digital signature is based on a SHA256 hash of a stringified version of the
 'content' object.  JavaScript's built-in JSON.stringify() method does not
@@ -39,5 +39,13 @@ the [canonical-json module][CJ] is used to stringify the properties of the 'cont
 object in **alphabetical order** as shown in the example above.
 
 ####encryptedData Messages
+```
+{
+  content: {
+    clearFrom: 'f5jya7neu64cmhuz.onion',
+    data: '<encrypted'
+  }
+}
+```
 
 [CJ]:https://www.npmjs.com/package/canonical-json
