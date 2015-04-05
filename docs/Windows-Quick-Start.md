@@ -13,15 +13,35 @@ http://www.howtogeek.com/118594/how-to-edit-your-system-path-for-easy-command-li
 Install python 2.x from https://www.python.org/ftp/python/2.7.9/python-2.7.9.amd64.msi
 
 Install Visual Studio from https://www.visualstudio.com/en-us/products/visual-studio-express-vs.aspx
-The installer will take quite a bit of time to complete
+*note* The installer will take quite a bit of time to complete
 
 Install Microsoft Visual C++ 2008 Redistributable Package (x86) from http://www.microsoft.com/en-us/download/details.aspx?id=29
+
 Install Microsoft Visual C++ 2008 Redistributable Package (x64) from http://www.microsoft.com/en-us/download/details.aspx?id=15336
 
 Install OpenSSL 32 and 64 bit versions taking all the default settings:
+
 http://slproweb.com/download/Win32OpenSSL-1_0_1m.exe
 http://slproweb.com/download/Win64OpenSSL-1_0_1m.exe
 
+
+Install Node.js from https://nodejs.org/
+Open a command prompt and run "npm install atom-shell -g" and "npm install node-gyp -g"
+
+Now that you have all the dependencies we can install noxious
+From a directory of your choice run the following commands:
+
+````
+git clone https://github.com/mattcollier/noxious.git
+cd noxious
+npm install
+build_win_ia32
+````
+
+Now you should be able to run Noxious :)
+````
+npm start
+````
 
 Install Node.js from https://nodejs.org/
 Open a command prompt and run "npm install atom-shell -g" and "npm install node-gyp -g"
