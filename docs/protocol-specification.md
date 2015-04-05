@@ -21,7 +21,7 @@ contents of the introduction message have not been altered in transit.
     pubPEM: '<publicKey>',
     to: 'cniymubgqjzckk3s.onion',
     type: 'introduction'
-  }
+  },
   signature: '<digitalSignature>'
 }
 ```
@@ -54,6 +54,26 @@ Name | Type | Required | Encoding | Description
 ---- | ---- | -------- | --------   | -----------
 content   | object    | true  |         |
 clearFrom | property  | true  | UTF-8   | Sender's Tor hidden service name
-data      | property  | true  | BASE64  | Encrypted message
+data      | property  | true  | BASE64  | Encrypted 'content'
 type      | property  | true  | UTF-8   | must equal 'encryptedData'
+#####Encrypted 'content'
+```
+{
+  content: {
+    from: 'f5jya7neu64cmhuz.onion',
+    msgText: '<plainText>',
+    to: 'cniymubgqjzckk3s.onion',
+  },
+  signature: '<digitalSignature>'
+}
+```
+Name | Type | Required | Encoding | Description
+---- | ---- | -------- | --------   | -----------
+content   | object    | true  |     |
+from      | property  | true  | UTF-8   | Sender's Tor hidden service name
+msgText   | property  | true  | UTF-8   | Plain text message
+to        | property  | true  | UTF-8   | Recipient's Tor hidden service name
+type      | property  | true  | UTF-8   | must equal 'introduction'
+signature | property  | true  | BASE64  | Digital signature based on a SHA256 hash of a stringified version of the content object.
+
 [CJ]:https://www.npmjs.com/package/canonical-json
