@@ -10,8 +10,8 @@ This guide is a work in progress, and is intended to be a quick start to getting
 #### Add tor to path
 - http://www.howtogeek.com/118594/how-to-edit-your-system-path-for-easy-command-line-access/
 
-#### Install python 2.x 
-- Download from https://www.python.org/ftp/python/2.7.9/python-2.7.9.amd64.msi
+#### Install the latest python 2.x from https://www.python.org/downloads/windows/
+-  python-2.7.9.amd64.msi has been tested
 
 #### Install Visual Studio Express 2013 for Windows
 - https://www.visualstudio.com/en-us/products/visual-studio-express-vs.aspx
