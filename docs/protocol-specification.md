@@ -36,7 +36,7 @@ The digital signature is based on a SHA256 hash of a stringified version of the
 'content' object.  JavaScript's built-in JSON.stringify() method does not
 guarantee that objects will be stringified in any particular order.  In io.js
 the [canonical-json module][CJ] is used to stringify the properties of the 'content'
-object in **alphabetical order** as shown above.
+object in **alphabetical order** as shown in the example above.
 
 ####encryptedData Messages
 
