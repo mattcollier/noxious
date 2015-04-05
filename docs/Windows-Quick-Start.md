@@ -54,4 +54,6 @@ npm install
 build_win_ia32
 
 Now you should be able to run Noxious :)
+````
 npm start
+````
