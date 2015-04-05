@@ -96,4 +96,10 @@ guarantee that objects will be stringified in any particular order.  In io.js
 the [canonical-json module][CJ] is used to stringify the properties of the 'content'
 object in **alphabetical order** as shown in the example above.
 
+###Transmitting Messages
+Messages are transmitted to the recipient's Tor hidden service name with an HTTP
+POST request via Tor's socksv5 proxy.  See the [NoxClient transmitObject function][TOF]
+for an io.js implementation.
+
 [CJ]:https://www.npmjs.com/package/canonical-json
+[TOF]:https://github.com/mattcollier/noxious/blob/master/nox-client.js
