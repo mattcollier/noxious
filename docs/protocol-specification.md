@@ -57,10 +57,10 @@ Name | Type | Required | Encoding | Description
 ---- | ---- | -------- | --------   | -----------
 content   | object    | true  |         |
 clearFrom | property  | true  | UTF-8   | Sender's Tor hidden service name
-data      | property  | true  | BASE64  | RSA encrypted ['content' object](#encrypted-content)
+data      | property  | true  | BASE64  | RSA encrypted [message 'content' object](#message-content-object)
 type      | property  | true  | UTF-8   | must equal 'encryptedData'
 
-#####Encrypted 'content'
+#####Message 'content' Object
 ```
 {
   content: {
