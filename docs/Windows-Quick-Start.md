@@ -34,7 +34,7 @@ This guide is a work in progress, and is intended to be a quick start to getting
 npm install atom-shell -g
 npm install node-gyp -g
 ````
-
+#### Install Noxious
 Now that you have all the dependencies we can install noxious
 From a directory of your choice run the following commands:
 
