@@ -62,6 +62,13 @@ clearFrom | property  | true  | UTF-8   | Sender's Tor hidden service name
 data      | property  | true  | BASE64  | RSA encrypted [message 'content' object](#message-content-object)
 type      | property  | true  | UTF-8   | must equal 'encryptedData'
 
+#####The 'clearFrom' Property
+The 'clearFrom' property is used to quickly determine if the message is from a party
+listed in the recipient's contact list.  This ensures that the sender's public
+key is on file and therefore the digital signature contained in the message can
+be verified.  A message from an unknown party is dropped which prevents the
+recipient from being spammed by an unknown sender.
+
 #####Message 'content' Object
 ```
 {
