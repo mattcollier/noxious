@@ -26,7 +26,11 @@ http://slproweb.com/download/Win64OpenSSL-1_0_1m.exe
 
 
 Install Node.js from https://nodejs.org/
-Open a command prompt and run "npm install atom-shell -g" and "npm install node-gyp -g"
+Open a command prompt and run the following commands
+````
+npm install atom-shell -g
+npm install node-gyp -g
+````
 
 Now that you have all the dependencies we can install noxious
 From a directory of your choice run the following commands:
