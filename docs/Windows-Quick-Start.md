@@ -8,17 +8,18 @@ This guide is a work in progress, and is intended to be a quick start to getting
 - The current latest available installation package is https://dist.torproject.org/win32/tor-0.2.4.23-win32.exe
 
 #### Add tor to path. ####
-Here's an article on how to accomplish this task:
 - http://www.howtogeek.com/118594/how-to-edit-your-system-path-for-easy-command-line-access/
 
-Install python 2.x from https://www.python.org/ftp/python/2.7.9/python-2.7.9.amd64.msi
+#### Install python 2.x ####
+- Download from https://www.python.org/ftp/python/2.7.9/python-2.7.9.amd64.msi
 
-Install Visual Studio from https://www.visualstudio.com/en-us/products/visual-studio-express-vs.aspx
+#### Install Visual Studio ####
+- https://www.visualstudio.com/en-us/products/visual-studio-express-vs.aspx
 *note* The installer will take quite a bit of time to complete
 
-Install Microsoft Visual C++ 2008 Redistributable Package (x86) from http://www.microsoft.com/en-us/download/details.aspx?id=29
+####Install Microsoft Visual C++ 2008 Redistributable Package (x86) ####  - http://www.microsoft.com/en-us/download/details.aspx?id=29
 
-Install Microsoft Visual C++ 2008 Redistributable Package (x64) from http://www.microsoft.com/en-us/download/details.aspx?id=15336
+#### Install Microsoft Visual C++ 2008 Redistributable Package (x64) #### http://www.microsoft.com/en-us/download/details.aspx?id=15336
 
 Install OpenSSL 32 and 64 bit versions taking all the default settings:
 
