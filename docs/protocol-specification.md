@@ -30,5 +30,8 @@ from      | property  | true  | Sender's Tor hidden service name
 pubPEM    | property  | true  | Sender's public key in PEM format
 to        | property  | true  | Recipient's Tor hidden service name
 type      | property  | true  | must equal 'introduction'
+signature | property  | true  | Digital signature based on a SHA256 hash of a
+                                stringified version of the content object.  See
+                                note below.
 
 ####encryptedData Messages
