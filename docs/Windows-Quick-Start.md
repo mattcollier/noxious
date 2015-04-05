@@ -42,18 +42,3 @@ Now you should be able to run Noxious :)
 ````
 npm start
 ````
-
-Install Node.js from https://nodejs.org/
-Open a command prompt and run "npm install atom-shell -g" and "npm install node-gyp -g"
-
-Now that you have all the dependencies we can install noxious
-From a directory of your choice run the following commands:
-git clone https://github.com/mattcollier/noxious.git
-cd noxious
-npm install
-build_win_ia32
-
-Now you should be able to run Noxious :)
-````
-npm start
-````
