@@ -24,9 +24,8 @@ This guide is a work in progress, and is intended to be a quick start to getting
 - http://www.microsoft.com/en-us/download/details.aspx?id=15336
 
 #### Install OpenSSL 32 and 64 bit versions taking all the default settings:
-
-http://slproweb.com/download/Win32OpenSSL-1_0_1m.exe
-http://slproweb.com/download/Win64OpenSSL-1_0_1m.exe
+- http://slproweb.com/download/Win32OpenSSL-1_0_1m.exe
+- http://slproweb.com/download/Win64OpenSSL-1_0_1m.exe
 
 #### Install Node.js and dependencies
 - https://nodejs.org/
