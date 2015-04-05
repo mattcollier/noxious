@@ -13,7 +13,7 @@ This guide is a work in progress, and is intended to be a quick start to getting
 #### Install python 2.x 
 - Download from https://www.python.org/ftp/python/2.7.9/python-2.7.9.amd64.msi
 
-#### Install Visual Studio 
+#### Install Visual Studio Express 2013 for Windows
 - https://www.visualstudio.com/en-us/products/visual-studio-express-vs.aspx
 *note* The installer will take quite a bit of time to complete
 
