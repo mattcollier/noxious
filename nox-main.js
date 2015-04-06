@@ -384,12 +384,6 @@ ths.on('bootstrap', function(state) {
   notifyGUI(msgObj);
 });
 
-// Quit when all windows are closed.
-app.on('window-all-closed', function() {
-  if (process.platform != 'darwin')
-    app.quit();
-});
-
 // This method will be called when atom-shell has done everything
 // initialization and ready for creating browser windows.
 app.on('ready', function() {
