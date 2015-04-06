@@ -1,7 +1,7 @@
 ## Installing Noxious on Windows ##
 This guide is a work in progress, and is intended to be a quick start to getting Noxious to work on Windows.
 
-Install git from http://git-scm.com/download/win
+Install git from http://git-scm.com/downloads
 During the installation make sure you choose the option *Use Git from the Windows Command Prompt* as this will add git to your path. *note* you'll need to close out of any active command prompts and reopen for this change to take effect.
 
 Install Tor from https://dist.torproject.org/win32/
