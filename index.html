@@ -375,8 +375,10 @@
         var contactAddress = $(this).data('contactaddress');
         var choice = $(this).data('choice');
         var description = $(this).data('description');
-        alert(description);
         $('#requestButtons_' + contactAddress).html(description);
+        // TODO If contact request is accepted, the above line never apparently
+        // gets executed.  However, if the notifyAtom function below is commented
+        // the code executes properly.
         var msgObj = {};
         msgObj.method = 'contact';
         msgObj.content = { type: choice, contactAddress: contactAddress+'.onion' };
