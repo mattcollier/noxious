@@ -297,12 +297,12 @@
             would like to add you on Noxious \
             <div id="requestButtons_' + contactAddress + '" \
             class="text-center buttonRow"> \
-            <button id="accept_' + contactAddress + '" \
+            <button data-contactaddress="' + contactAddress + '" \
             class="btn btn-success requestChoiceButton" data-choice="acceptContactRequest" \
-            data-description="Accepted.">Accept</button> or \
-            <button id="decline_' + contactAddress + '" \
+            data-description="Accepted">Accept</button> or \
+            <button data-contactaddress="' + contactAddress + '" \
             class="btn btn-danger requestChoiceButton" \
-            data-choice="declineContactRequest" data-description="Declined."> \
+            data-choice="declineContactRequest" data-description="Declined"> \
             Decline</button></div></div>';
         } else {
           switch($('#requestStatus_'+contactAddress).data('status')) {
@@ -372,14 +372,15 @@
       }
 
       $(document).on('click','.requestChoiceButton', function() {
-        var contactAddress = this.id.split('_')[1];
+        var contactAddress = $(this).data('contactaddress');
         var choice = $(this).data('choice');
         var description = $(this).data('description');
+        alert(description);
+        $('#requestButtons_' + contactAddress).html(description);
         var msgObj = {};
         msgObj.method = 'contact';
         msgObj.content = { type: choice, contactAddress: contactAddress+'.onion' };
         notifyAtom(msgObj);
-        $('#requestButtons_' + contactAddress).html(description);
         function removeReqInfo(contactAddress) {
           $('#reqInfo_' + contactAddress).fadeOut(2000, function() {
             $(this).remove();
