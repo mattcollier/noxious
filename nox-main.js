@@ -53,7 +53,6 @@ dataTransmitDomain.on('error', function(err){
 contactRequestDomain.on('error', function(err){
   console.log(err);
   notifyCommError(err.code);
-  var de = err.domainEmitter['_dstaddr'];
   updateRequestStatus(err.domainEmitter['_dstaddr'], 'failed');
 });
 
@@ -139,6 +138,35 @@ function buildContactRequest(destAddress) {
   msgObj.content = introObj;
   msgObj.signature = signature;
   return msgObj;
+}
+
+function transmitContactRequest(destAddress) {
+  contactRequestDomain.run(function() {
+    myNoxClient.transmitObject(destAddress, buildContactRequest(destAddress), function(res) {
+      switch(res.status) {
+        case 200:
+          updateRequestStatus(destAddress, 'delivered');
+          break;
+        case 409:
+          updateRequestStatus(destAddress, 'failed');
+          var msgObj = {};
+          msgObj.method = 'error';
+          var failedReason = res.body['reason'];
+          switch (failedReason) {
+            case 'EKEYSIZE':
+              msgObj.content = { type: 'contact',
+                message: 'The contact request was rejected because your public encryption key is not proper.  Please upgrade your Noxious software.'};
+              break;
+            default:
+              msgObj.content = { type: 'contact',
+                message: 'The recipient already has your contact information.  Ask them to delete your contact information and try again.'};
+              break;
+          }
+          notifyGUI(msgObj);
+          break;
+      }
+    });
+  });
 }
 
 // Keep a global reference of the window object, if you don't, the window will
@@ -492,7 +520,7 @@ app.on('ready', function() {
         // no need to update GUI
         break;
       case 'sendContactRequest':
-        // do not send request to myAddress
+        // do not send request to myAddress or to existing contacts
         if(content.contactAddress==myAddress) {
           var msgObj = {};
           msgObj.method = 'error';
@@ -512,37 +540,18 @@ app.on('ready', function() {
             message: 'There is already a pending contact request for this Client ID.  Delete the contact request and try again.'};
           notifyGUI(msgObj);
         } else {
-          contactRequestDomain.run(function() {
-            myNoxClient.transmitObject(content.contactAddress, buildContactRequest(content.contactAddress), function(res) {
-              switch(res.status) {
-                case 200:
-                  updateRequestStatus(content.contactAddress, 'delivered');
-                  break;
-                case 409:
-                  updateRequestStatus(content.contactAddress, 'failed');
-                  var msgObj = {};
-                  msgObj.method = 'error';
-                  var failedReason = res.body['reason'];
-                  switch (failedReason) {
-                    case 'EKEYSIZE':
-                      msgObj.content = { type: 'contact',
-                        message: 'The contact request was rejected because your public encryption key is not proper.  Please upgrade your Noxious software.'};
-                      break;
-                    default:
-                      msgObj.content = { type: 'contact',
-                        message: 'The recipient already has your contact information.  Ask them to delete your contact information and try again.'};
-                      break;
-                  }
-                  notifyGUI(msgObj);
-                  break;
-              }
-            });
-          });
+          transmitContactRequest(content.contactAddress);
           var contactRequest = { contactAddress: content.contactAddress, direction: 'outgoing', status: 'sending' };
           contactRequestList.addKey(content.contactAddress, contactRequest);
           // reinit the request list
           getContactRequests();
         }
+        break;
+      case 'retryContactRequest':
+        // user wants to resend a failed failed contact requests
+        // the address has already passed inspection and the GUI has been
+        // set to show sending status
+        transmitContactRequest(content.contactAddress);
         break;
       case 'setNickName':
         var contactInfo = contactList.getKey(content.contactAddress);

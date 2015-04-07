@@ -193,6 +193,7 @@
               contactRequest.direction = reqArray[reqIndex].direction;
               contactRequest.status = reqArray[reqIndex].status;
               $('#contactRequestList').append(genContactRequestHTML(contactRequest));
+              displayRequestInfo(contactRequest.address, contactRequest.direction);
             }
             $('#contactRequestContainer').slideDown(400);
             break;
@@ -305,14 +306,19 @@
             case 'delivered':
               requestInfoHTML = '<div id="reqInfo_' + contactAddress + '"> \
                 You sent a contact request \
-                to <strong>' + contactAddress + '</strong> but there has been no response.';
+                to <strong>' + contactAddress + '</strong> but there has been no response. \
+                </div>';
               break;
             case 'failed':
               requestInfoHTML = '<div id="reqInfo_' + contactAddress + '">You \
                 attempted to send a contact request \
                 to <strong>' + contactAddress + '</strong> but the recipient did \
-                not receive your request.  Delete the contact request and \
-                resend when the recipient is online.';
+                not receive your request. \
+                <button class="btn-success requestRetryButton" \
+                data-choice="retryContactRequest" \
+                data-contactaddress="' + contactAddress +'">Retry \
+                </button> \
+                </div>';
               break;
           }
         }
@@ -334,14 +340,18 @@
         }
       });
 
-      $(document).on('click','.pendingContactRequest', function() {
-        var contactAddress = this.id.split('_')[1];
-        var direction = $(this).data('direction');
+      function displayRequestInfo(contactAddress, direction) {
         // display if it's not already displayed
         if($('#reqInfo_' + contactAddress).length == 0) {
           $('#chatContent_systemMessages').append(genRequestInfoHTML(contactAddress, direction));
+        } else {
+          // replace it
+          $('#reqInfo_' + contactAddress).replaceWith(genRequestInfoHTML(contactAddress, direction));
         }
-        // display system messages
+      }
+
+      $(document).on('click','.pendingContactRequest', function() {
+        displayRequestInfo($(this).data('realaddress'), $(this).data('direction'));
         setActiveChat(systemMessagesAddress, systemMessagesDisplay);
       });
 
@@ -385,6 +395,16 @@
         msgObj.content = {type: 'delContactRequest', contactAddress: contactAddress+'.onion'};
         notifyAtom(msgObj);
         removeContactRequest(contactAddress);
+      });
+
+      $(document).on('click','.requestRetryButton', function(e) {
+        var contactAddress = $(this).data('contactaddress');
+        var msgObj = {};
+        msgObj.method = 'contact';
+        msgObj.content = { type: 'retryContactRequest', contactAddress: contactAddress + '.onion' };
+        notifyAtom(msgObj);
+        $('#requestStatus_' + contactAddress).removeClass('glyphicon-exclamation-sign');
+        $('#requestStatus_' + contactAddress).addClass('glyphicon-transfer');
       });
 
       $(document).on('click','.editContactIcon', function(e) {
