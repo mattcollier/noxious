@@ -517,6 +517,7 @@ app.on('ready', function() {
       case 'declineContactRequest':
         // TODO Should the sender be notified?
         contactRequestList.delKey(content.contactAddress);
+        getContactRequests();
         // no need to update GUI
         break;
       case 'sendContactRequest':

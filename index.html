@@ -147,6 +147,7 @@
             contactRequest.fullAddress = msg.from;
             contactRequest.direction = msg.direction;
             contactRequest.status = msg.status;
+            displayRequestInfo(contactRequest.address, contactRequest.direction);
             $('#contactRequestList').append(genContactRequestHTML(contactRequest));
             $('#contactRequestContainer').slideDown(400);
             break;
@@ -291,33 +292,38 @@
         var requestInfoHTML = '';
         if(direction == 'incoming') {
           requestInfoHTML = '<div id="reqInfo_' + contactAddress + '" \
-            class="requestInfo"><strong>' + contactAddress + '</strong> \
+            class="col-sm-6 systemMessage text-center"> \
+            <strong>' + contactAddress + '</strong> \
             would like to add you on Noxious \
-            <div id="requestButtons_' + contactAddress + '"> \
+            <div id="requestButtons_' + contactAddress + '" \
+            class="text-center buttonRow"> \
             <button id="accept_' + contactAddress + '" \
-            class="btn-success requestChoiceButton" data-choice="acceptContactRequest" \
+            class="btn btn-success requestChoiceButton" data-choice="acceptContactRequest" \
             data-description="Accepted.">Accept</button> or \
             <button id="decline_' + contactAddress + '" \
-            class="btn-danger requestChoiceButton" \
+            class="btn btn-danger requestChoiceButton" \
             data-choice="declineContactRequest" data-description="Declined."> \
             Decline</button></div></div>';
         } else {
           switch($('#requestStatus_'+contactAddress).data('status')) {
             case 'delivered':
-              requestInfoHTML = '<div id="reqInfo_' + contactAddress + '"> \
-                You sent a contact request \
-                to <strong>' + contactAddress + '</strong> but there has been no response. \
+              requestInfoHTML = '<div id="reqInfo_' + contactAddress + '" \
+                class="col-sm-6 systemMessage text-center"> \
+                You successfully sent a contact request \
+                to <strong>' + contactAddress + '</strong> but there has been no reply. \
                 </div>';
               break;
             case 'failed':
-              requestInfoHTML = '<div id="reqInfo_' + contactAddress + '">You \
-                attempted to send a contact request \
+              requestInfoHTML = '<div id="reqInfo_' + contactAddress + '" \
+                class="col-sm-6 systemMessage text-center">You attempted to \
+                send a contact request \
                 to <strong>' + contactAddress + '</strong> but the recipient did \
                 not receive your request. \
-                <button class="btn-success requestRetryButton" \
+                <div class="text-center buttonRow"><button  \
+                class="btn btn-success requestRetryButton text-uppercase" \
                 data-choice="retryContactRequest" \
                 data-contactaddress="' + contactAddress +'">Retry \
-                </button> \
+                </button></div> \
                 </div>';
               break;
           }
@@ -373,8 +379,6 @@
         msgObj.method = 'contact';
         msgObj.content = { type: choice, contactAddress: contactAddress+'.onion' };
         notifyAtom(msgObj);
-        // TODO If a request is declined, what happens if another request from same arrives
-        // currently the display of info would be blocked
         $('#requestButtons_' + contactAddress).html(description);
         function removeReqInfo(contactAddress) {
           $('#reqInfo_' + contactAddress).fadeOut(2000, function() {
@@ -383,7 +387,7 @@
         }
         setTimeout(function() {
           removeReqInfo(contactAddress);
-        }, 5000);
+        }, 2000);
       });
 
       $(document).on('click','.deleteRequestIcon', function(e) {
