@@ -18,6 +18,7 @@
       var systemMessagesAddress = 'systemMessages';
       var systemMessagesDisplay = 'System Messages';
       var notifications = {};
+      var contactDisplayNames = {};
 
       var ipc = require('ipc');
 
@@ -154,7 +155,6 @@
           case 'initContactList':
             var contactList = msg.contactList;
             $('#contactList').html('');
-            //console.log('Contact List 2: ', contactList);
             var contactArray = Object.keys(contactList).map(function (key) { return contactList[key]; });
             for (contactIndex in contactArray) {
               // TODO store contact objects into array??
@@ -180,6 +180,8 @@
               $('#contactList').append(contactCode);
               // Remove any messages relating to contact requests for contacts
               $('#reqInfo_' + contactAddress.address).remove();
+              // display name are tracked to avoid duplicates
+              contactDisplayNames[displayName] = true;
             }
             break;
           case 'initContactRequestList':
@@ -457,6 +459,7 @@
           // remove nickname
           $(textInput).closest('span.contactAddress').html(realAddress);
           updateDisplayName(realAddress, realAddress);
+          delete contactDisplayNames[currentValue];           
           var msgObj = {};
           msgObj.method = 'contact';
           msgObj.content = {type: 'delNickName', contactAddress: realAddress+'.onion'};
@@ -464,12 +467,21 @@
         } else if (nickName === '') {
           $(textInput).closest('span.contactAddress').html(currentValue);
         } else {
-          $(textInput).closest('span.contactAddress').html(nickName);
-          updateDisplayName(realAddress, nickName);
-          var msgObj = {};
-          msgObj.method = 'contact';
-          msgObj.content = {type: 'setNickName', contactAddress: realAddress+'.onion', nickName: nickName};
-          notifyAtom(msgObj);
+          if (contactDisplayNames[nickName] === undefined) {
+            $(textInput).closest('span.contactAddress').html(nickName);
+            updateDisplayName(realAddress, nickName);
+            contactDisplayNames[nickName] = true;
+            if (currentValue !== realAddress) {
+              delete contactDisplayNames[currentValue];
+            }
+            var msgObj = {};
+            msgObj.method = 'contact';
+            msgObj.content = {type: 'setNickName', contactAddress: realAddress+'.onion', nickName: nickName};
+            notifyAtom(msgObj);
+          } else {
+            $(textInput).closest('span.contactAddress').html(currentValue);
+            alert('The nickname you provided is already in use, please enter a unique nickname.');
+          }
         }
       }
 
