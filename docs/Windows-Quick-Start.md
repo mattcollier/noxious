@@ -3,7 +3,6 @@
 =======
 ## Installing Noxious on Windows ##
 This guide is a work in progress, and is intended to be a quick start to getting Noxious to work on Windows.
->>>>>>> c2a5274ea1ea179d572a77aae0c5f0a3e3eba2ca
 
 #### Install git from http://git-scm.com/download/win
 - During the installation make sure you choose the option *Use Git from the Windows Command Prompt* as this will add git to your path. *note* you'll need to close out of any active command prompts and reopen for this change to take effect.
