@@ -28,6 +28,7 @@ For Windows 8.0 and below you'll need to install Visual Studio Express 2013 for 
 #### Install OpenSSL
 The non light installers are needed.
 - http://slproweb.com/products/Win32OpenSSL.html
+
 *note Both the 32 and 64 bit will need to be installed.*
 
 
