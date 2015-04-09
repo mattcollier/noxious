@@ -26,11 +26,8 @@ For Windows 8.0 and below you'll need to install Visual Studio Express 2013 for 
 - http://www.microsoft.com/en-us/download/details.aspx?id=15336
 
 #### Install OpenSSL
-The non light installers are needed.
+You'll need to use the non light installers, and both 32 and 64 bit installs are required.
 - http://slproweb.com/products/Win32OpenSSL.html
-
-*note Both the 32 and 64 bit will need to be installed.*
-
 
 #### Install Node.js and dependencies
 - https://nodejs.org/
