@@ -2,7 +2,6 @@
 "use strict";
 var
   fs = require('fs'),
-  debug = require('debug')('noxious:config');
 
 class DataFile{
   constructor(path, init) {
