@@ -9,11 +9,10 @@ v8.setFlagsFromString('--harmony_arrow_functions');
 var
   app = require('app'),  // Module to control application life.
   Path = require('path'),
-  queryString = require('querystring'),
   http = require('http'),
   DataFile = require('./DataFile'),
   // communications functions
-  NoxClient = require(__dirname + '/nox-client.js'),
+  NoxClient = require('./nox-client.js'),
   myNoxClient = new NoxClient(),
   // cononical json.stringify
   // This is used to stringify objects in a consistent way prior to hashing/signing
@@ -31,7 +30,7 @@ var
 
 
 function notifyCommError(error) {
-  var msgObj = {};
+  let msgObj = {};
   msgObj.method = 'error';
   switch(error) {
     case 'EHOSTUNREACH':
@@ -66,12 +65,8 @@ function notifyGUI(msg) {
   }
 }
 
-function isEmptyObject(obj) {
-  return !Object.keys(obj).length;
-}
-
 function isValidTorHiddenServiceName (name) {
-  var toReturn = false;
+  let toReturn = false;
   if (name.search(/^[a-zA-Z2-7]{16}\.onion$/) != -1) {
     // it matched
     toReturn = true;
@@ -103,8 +98,6 @@ function updateRequestStatus(contactAddress, status) {
   let tmpContact = contactRequestList.get(contactAddress);
   tmpContact.status=status;
   contactRequestList.set(contactAddress, tmpContact);
-  // TODO need to just update the status icon, this is leading to incorrect messages.
-  getContactRequests();
 }
 
 function buildEncryptedMessage(destAddress, msgText) {
@@ -417,7 +410,7 @@ app.on('ready', function() {
   // Create the browser window.
   mainWindow = new BrowserWindow({width: 900, height: 600});
 //  mainWindow = new BrowserWindow({width: 900, height: 600, 'web-preferences': {'overlay-scrollbars': true}});
-  mainWindow.openDevTools();
+//  mainWindow.openDevTools();
 
   ths.start(false, function () {
     console.log("tor Started!");

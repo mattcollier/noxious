@@ -83,21 +83,27 @@
           case 'delivered':
             reqCode = reqCode + '<span id="requestStatus_' + contactRequest.address + '" \
               data-status="delivered" data-tip="delivered" \
-              class="requestStatusIcon glyphicon glyphicon glyphicon glyphicon-ok" \
+              class="requestStatusIcon glyphicon glyphicon glyphicon-ok" \
               aria-hidden="true"></span>';
             break;
           case 'sending':
             reqCode = reqCode + '<span id="requestStatus_' + contactRequest.address + '" \
               data-status="sending" data-tip="sending" \
-              class="requestStatusIcon glyphicon glyphicon glyphicon-transfer" \
+              class="requestStatusIcon glyphicon glyphicon-transfer" \
               aria-hidden="true"></span>';
             break;
           case 'failed':
             reqCode = reqCode + '<span id="requestStatus_' + contactRequest.address + '" \
               data-status="failed" data-tip="failed" \
-              class="requestStatusIcon glyphicon glyphicon glyphicon-exclamation-sign" \
+              class="requestStatusIcon glyphicon glyphicon-exclamation-sign" \
               aria-hidden="true"></span>';
-            break;        }
+            break;
+          default:
+            reqCode = reqCode + '<span id="requestStatus_' + contactRequest.address + '" \
+              class="requestStatusIcon glyphicon" \
+              aria-hidden="true"></span>';
+            break;
+        }
         reqCode = reqCode + '</div>';
         return reqCode;
       }
@@ -375,6 +381,9 @@
         var choice = $(this).data('choice');
         var description = $(this).data('description');
         $('#requestButtons_' + contactAddress).html(description);
+        if(choice == "acceptContactRequest") {
+          $('#requestStatus_' + contactAddress).addClass('glyphicon-transfer');
+        }
         var msgObj = {};
         msgObj.method = 'contact';
         msgObj.content = { type: choice, contactAddress: contactAddress+'.onion' };
