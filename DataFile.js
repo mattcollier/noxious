@@ -1,7 +1,7 @@
 
 "use strict";
 var
-  fs = require('fs'),
+  fs = require('fs');
 
 class DataFile{
   constructor(path, init) {
