@@ -11,7 +11,6 @@ var
   Path = require('path'),
   queryString = require('querystring'),
   http = require('http'),
-  Object2File = require(__dirname + '/object2file.js'),
   DataFile = require('./DataFile'),
   // communications functions
   NoxClient = require(__dirname + '/nox-client.js'),
@@ -19,12 +18,11 @@ var
   // cononical json.stringify
   // This is used to stringify objects in a consistent way prior to hashing/signing
   jsStringify = require('canonical-json'),
-  dataDir = __dirname + '/noxious-data',
   contactList = new DataFile(Path.join(app.getPath('userData'), 'Contacts.json')),
   contactRequestList = new DataFile(Path.join(app.getPath('userData'), 'ContactRequests.json')),
   BrowserWindow = require('browser-window'),  // Module to create native browser window.
   thsBuilder = require('ths'),
-  ths = new thsBuilder(dataDir),
+  ths = new thsBuilder(app.getPath('userData')),
   NoxCrypto = require('./nox-crypto.js'),
   myCrypto = new NoxCrypto({ path: Path.join(app.getPath('userData'), 'PrivateKey.json') }),
   dataTransmitDomain = require('domain').create(),
