@@ -21,12 +21,12 @@ var
   jsStringify = require('canonical-json'),
   dataDir = __dirname + '/noxious-data',
   contactList = new DataFile(Path.join(app.getPath('userData'), 'Contacts.json')),
-  contactRequestList = new Object2File(dataDir, 'contact-requests.json'),
+  contactRequestList = new DataFile(Path.join(app.getPath('userData'), 'ContactRequests.json')),
   BrowserWindow = require('browser-window'),  // Module to create native browser window.
   thsBuilder = require('ths'),
   ths = new thsBuilder(dataDir),
-  NoxCrypto = require(__dirname + '/nox-crypto.js'),
-  myCrypto = new NoxCrypto({ dataDir: dataDir, fileName: 'privatekey.json'}),
+  NoxCrypto = require('./nox-crypto.js'),
+  myCrypto = new NoxCrypto({ path: Path.join(app.getPath('userData'), 'PrivateKey.json') }),
   dataTransmitDomain = require('domain').create(),
   contactRequestDomain = require('domain').create(),
   myAddress;
@@ -91,43 +91,38 @@ function getContacts(forceReload) {
 }
 
 function getContactRequests() {
-  contactRequestList.getContent(function(content) {
-    if (!isEmptyObject(content)) {
-      var msgObj = {};
-      msgObj.method = 'contact';
-      msgObj.content = { type: 'initContactRequestList', contactRequestList: content };
-      notifyGUI(msgObj);
-    } else {
-      var msgObj = {};
-      msgObj.method = 'contact';
-      msgObj.content = { type: 'clearContactRequestList', contactRequestList: {} };
-      notifyGUI(msgObj);
-    }
-  });
+  let msgObj = {};
+  msgObj.method = 'contact';
+  if (contactRequestList.size() > 0) {
+    msgObj.content = { type: 'initContactRequestList', contactRequestList: contactRequestList.getAll() };
+  } else {
+    msgObj.content = { type: 'clearContactRequestList', contactRequestList: {} };
+  }
+  notifyGUI(msgObj);
 }
 
 function updateRequestStatus(contactAddress, status) {
-  var tmpContact = contactRequestList.getKey(contactAddress);
+  let tmpContact = contactRequestList.get(contactAddress);
   tmpContact.status=status;
-  contactRequestList.addKey(contactAddress, tmpContact);
+  contactRequestList.set(contactAddress, tmpContact);
   // TODO need to just update the status icon, this is leading to incorrect messages.
   getContactRequests();
 }
 
 function buildEncryptedMessage(destAddress, msgText) {
-  var tmpCrypto = new NoxCrypto({ 'pubPEM': contactList.get(destAddress).pubPEM });
-  var msgContent = {};
+  let tmpCrypto = new NoxCrypto({ 'pubPEM': contactList.get(destAddress).pubPEM });
+  let msgContent = {};
   msgContent.type = 'message';
   msgContent.from = myAddress;
   msgContent.to = destAddress;
   msgContent.msgText = msgText;
-  msgObj = {};
+  let msgObj = {};
   msgObj.content = msgContent;
   // sign using my private key
   msgObj.signature = myCrypto.signString(jsStringify(msgContent));
   // encrypt using recipients public key
-  var encryptedData = tmpCrypto.encrypt(JSON.stringify(msgObj));
-  var encObj = {};
+  let encryptedData = tmpCrypto.encrypt(JSON.stringify(msgObj));
+  let encObj = {};
   encObj.content = {type: 'encryptedData', clearFrom: myAddress, data: encryptedData};
   return encObj;
 }
@@ -237,22 +232,22 @@ function registerContactRequest(req) {
   tmpObj.pubPEM = req.pubPEM  ;
   tmpObj.contactAddress = req.from;
   // check for dups in requests list and contact list
-  if(contactRequestList.getKey(req.from) === undefined && !contactList.has(req.from)) {
+  if(!contactRequestList.has(req.from) && !contactList.has(req.from)) {
     // this is a new incoming contact Request
     console.log('[contact] New Contact Request Received');
     tmpObj.direction = 'incoming';
-    contactRequestList.addKey(req.from, tmpObj);
-    var msgObj={};
+    contactRequestList.set(req.from, tmpObj);
+    let msgObj={};
     msgObj.method = 'contact';
     msgObj.content = { type: 'contactRequest', from: req.from, direction: 'incoming' };
     notifyGUI(msgObj);
-  } else if (contactRequestList.getKey(req.from) && contactRequestList.getKey(req.from).direction == 'outgoing') {
+  } else if (contactRequestList.has(req.from) && contactRequestList.get(req.from).direction == 'outgoing') {
     // this person accepted a contact request
     contactList.set(req.from, { pubPEM: tmpObj.pubPEM, contactAddress: tmpObj.contactAddress });
-    contactRequestList.delKey(req.from);
+    contactRequestList.delete(req.from);
     getContacts();
     getContactRequests();
-  } else if(contactRequestList.getKey(req.from)) {
+  } else if(contactRequestList.get(req.from)) {
     console.log('[contact] Contact request is from an existing contact.');
   }
 }
@@ -271,13 +266,12 @@ function preProcessMessage(msg) {
       switch (content.type) {
         case 'introduction':
           if (content.from !== undefined && content.from && isValidTorHiddenServiceName(content.from)) {
-            if(!contactList.has(content.from) &&
-              contactRequestList.getKey(content.from) === undefined) {
+            if(!contactList.has(content.from) && !contactRequestList.has(content.from)) {
               // we don't know this person already, intro is OK
               status.code = 200;
-            } else if (contactRequestList.getKey(content.from) !== undefined &&
-              contactRequestList.getKey(content.from)['direction'] == 'outgoing' &&
-              contactRequestList.getKey(content.from)['status'] == 'delivered') {
+            } else if (contactRequestList.has(content.from) &&
+              contactRequestList.get(content.from)['direction'] == 'outgoing' &&
+              contactRequestList.get(content.from)['status'] == 'delivered') {
               // we're expecting to hear back from this person, intro is OK
               status.code = 200;
             } else {
@@ -486,11 +480,8 @@ app.on('ready', function() {
         contactRequestDomain.run(function() {
           myNoxClient.transmitObject(content.contactAddress, buildContactRequest(content.contactAddress), function(res) {
             if(res.status == 200) {
-              // pull the info from the contactRequestList and make a new conact.
-              contactList.set(content.contactAddress, { pubPEM: contactRequestList.getKey(content.contactAddress).pubPEM, contactAddress: content.contactAddress });
-              // remove the contact request and save
-              contactRequestList.delKey(content.contactAddress);
-              // for now, just reinit the contact lists
+              contactList.set(content.contactAddress, { pubPEM: contactRequestList.get(content.contactAddress).pubPEM, contactAddress: content.contactAddress });
+              contactRequestList.delete(content.contactAddress);
               getContacts();
               getContactRequests();
             } else if (res.status == 409) {
@@ -516,13 +507,11 @@ app.on('ready', function() {
         });
         break;
       case 'delContactRequest':
-        contactRequestList.delKey(content.contactAddress);
+        contactRequestList.delete(content.contactAddress);
         break;
       case 'declineContactRequest':
-        // TODO Should the sender be notified?
-        contactRequestList.delKey(content.contactAddress);
+        contactRequestList.delete(content.contactAddress);
         getContactRequests();
-        // no need to update GUI
         break;
       case 'sendContactRequest':
         // do not send request to myAddress or to existing contacts
@@ -538,7 +527,7 @@ app.on('ready', function() {
           msgObj.content = { type: 'contact',
             message: 'You may not send a contact request to an existing contact.  Delete the contact and try again.'};
           notifyGUI(msgObj);
-        } else if (contactRequestList.getKey(content.contactAddress)) {
+        } else if (contactRequestList.get(content.contactAddress)) {
           var msgObj = {};
           msgObj.method = 'error';
           msgObj.content = { type: 'contact',
@@ -547,7 +536,7 @@ app.on('ready', function() {
         } else {
           transmitContactRequest(content.contactAddress);
           var contactRequest = { contactAddress: content.contactAddress, direction: 'outgoing', status: 'sending' };
-          contactRequestList.addKey(content.contactAddress, contactRequest);
+          contactRequestList.set(content.contactAddress, contactRequest);
           // reinit the request list
           getContactRequests();
         }
