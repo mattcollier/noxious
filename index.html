@@ -154,7 +154,6 @@
           case 'initContactList':
             var contactList = msg.contactList;
             $('#contactList').html('');
-            //console.log('Contact List 2: ', contactList);
             var contactArray = Object.keys(contactList).map(function (key) { return contactList[key]; });
             for (contactIndex in contactArray) {
               // TODO store contact objects into array??
@@ -376,9 +375,6 @@
         var choice = $(this).data('choice');
         var description = $(this).data('description');
         $('#requestButtons_' + contactAddress).html(description);
-        // TODO If contact request is accepted, the above line never apparently
-        // gets executed.  However, if the notifyAtom function below is commented
-        // the code executes properly.
         var msgObj = {};
         msgObj.method = 'contact';
         msgObj.content = { type: choice, contactAddress: contactAddress+'.onion' };
@@ -517,7 +513,6 @@
 
         // Send Contact Request
         $('#sendContactRequestButton').click(function () {
-          // TODO validation on onion address
           var contactAddress = $('#newContactAddressText').val() + '.onion';
           if (isValidTorHiddenServiceName(contactAddress)) {
             var msgObj = {};

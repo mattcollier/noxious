@@ -1,30 +1,36 @@
-var queryString = require('querystring');
-var http = require('http');
-var Object2File = require(__dirname + '/object2file.js');
+"use strict";
 
-// communications functions
-var NoxClient = require(__dirname + '/nox-client.js');
-var myNoxClient = new NoxClient();
+var v8  = require('v8');
+v8.setFlagsFromString('--harmony_classes');
+v8.setFlagsFromString('--harmony_object_literals');
+v8.setFlagsFromString('--harmony_tostring');
+v8.setFlagsFromString('--harmony_arrow_functions');
 
-// cononical json.stringify
-// This is used to stringify objects in a consistent way prior to hashing/signing
-var jsStringify = require('canonical-json');
+var
+  app = require('app'),  // Module to control application life.
+  Path = require('path'),
+  queryString = require('querystring'),
+  http = require('http'),
+  Object2File = require(__dirname + '/object2file.js'),
+  DataFile = require('./DataFile'),
+  // communications functions
+  NoxClient = require(__dirname + '/nox-client.js'),
+  myNoxClient = new NoxClient(),
+  // cononical json.stringify
+  // This is used to stringify objects in a consistent way prior to hashing/signing
+  jsStringify = require('canonical-json'),
+  dataDir = __dirname + '/noxious-data',
+  contactList = new DataFile(Path.join(app.getPath('userData'), 'Contacts.json')),
+  contactRequestList = new Object2File(dataDir, 'contact-requests.json'),
+  BrowserWindow = require('browser-window'),  // Module to create native browser window.
+  thsBuilder = require('ths'),
+  ths = new thsBuilder(dataDir),
+  NoxCrypto = require(__dirname + '/nox-crypto.js'),
+  myCrypto = new NoxCrypto({ dataDir: dataDir, fileName: 'privatekey.json'}),
+  dataTransmitDomain = require('domain').create(),
+  contactRequestDomain = require('domain').create(),
+  myAddress;
 
-var dataDir = __dirname + '/noxious-data';
-var contactList = new Object2File(dataDir, 'contacts.json');
-var contactRequestList = new Object2File(dataDir, 'contact-requests.json');
-
-var app = require('app');  // Module to control application life.
-var BrowserWindow = require('browser-window');  // Module to create native browser window.
-
-var thsBuilder = require('ths');
-var ths = new thsBuilder(dataDir);
-// crypto related
-var NoxCrypto = require(__dirname + '/nox-crypto.js');
-var myCrypto = new NoxCrypto({ dataDir: dataDir, fileName: 'privatekey.json'});
-var dataTransmitDomain = require('domain').create();
-var contactRequestDomain = require('domain').create();
-var myAddress;
 
 function notifyCommError(error) {
   var msgObj = {};
@@ -76,14 +82,12 @@ function isValidTorHiddenServiceName (name) {
 }
 
 function getContacts(forceReload) {
-  contactList.getContent(function(content) {
-    if (!isEmptyObject(content) || forceReload) {
-      var msgObj = {};
-      msgObj.method = 'contact';
-      msgObj.content = { type: 'initContactList', contactList: content };
-      notifyGUI(msgObj);
-    }
-  });
+  if (contactList.size() > 0 || forceReload) {
+    var msgObj = {};
+    msgObj.method = 'contact';
+    msgObj.content = { type: 'initContactList', contactList: contactList.getAll() };
+    notifyGUI(msgObj);
+  }
 }
 
 function getContactRequests() {
@@ -106,11 +110,12 @@ function updateRequestStatus(contactAddress, status) {
   var tmpContact = contactRequestList.getKey(contactAddress);
   tmpContact.status=status;
   contactRequestList.addKey(contactAddress, tmpContact);
+  // TODO need to just update the status icon, this is leading to incorrect messages.
   getContactRequests();
 }
 
 function buildEncryptedMessage(destAddress, msgText) {
-  var tmpCrypto = new NoxCrypto({ 'pubPEM': contactList.getKey(destAddress).pubPEM });
+  var tmpCrypto = new NoxCrypto({ 'pubPEM': contactList.get(destAddress).pubPEM });
   var msgContent = {};
   msgContent.type = 'message';
   msgContent.from = myAddress;
@@ -232,7 +237,7 @@ function registerContactRequest(req) {
   tmpObj.pubPEM = req.pubPEM  ;
   tmpObj.contactAddress = req.from;
   // check for dups in requests list and contact list
-  if(contactRequestList.getKey(req.from) === undefined && contactList.getKey(req.from) === undefined) {
+  if(contactRequestList.getKey(req.from) === undefined && !contactList.has(req.from)) {
     // this is a new incoming contact Request
     console.log('[contact] New Contact Request Received');
     tmpObj.direction = 'incoming';
@@ -243,8 +248,7 @@ function registerContactRequest(req) {
     notifyGUI(msgObj);
   } else if (contactRequestList.getKey(req.from) && contactRequestList.getKey(req.from).direction == 'outgoing') {
     // this person accepted a contact request
-    console.log('[contact] Contact Request Accepted');
-    contactList.addKey(req.from, tmpObj);
+    contactList.set(req.from, { pubPEM: tmpObj.pubPEM, contactAddress: tmpObj.contactAddress });
     contactRequestList.delKey(req.from);
     getContacts();
     getContactRequests();
@@ -258,7 +262,7 @@ function preProcessMessage(msg) {
   var status = {};
   status.code = 403;
   status.reason = '';
-  msgObj = JSON.parse(msg);
+  var msgObj = JSON.parse(msg);
   console.log('[preprocessing message] Start');
   // TODO this function should verify message integrity
   if (msgObj.content !== undefined) {
@@ -267,7 +271,7 @@ function preProcessMessage(msg) {
       switch (content.type) {
         case 'introduction':
           if (content.from !== undefined && content.from && isValidTorHiddenServiceName(content.from)) {
-            if(contactList.getKey(content.from) === undefined &&
+            if(!contactList.has(content.from) &&
               contactRequestList.getKey(content.from) === undefined) {
               // we don't know this person already, intro is OK
               status.code = 200;
@@ -300,7 +304,7 @@ function preProcessMessage(msg) {
           break;
         case 'encryptedData':
           if (content.clearFrom !== undefined && content.clearFrom && isValidTorHiddenServiceName(content.clearFrom)) {
-            if(contactList.getKey(content.clearFrom)) {
+            if(contactList.has(content.clearFrom)) {
               // this is from an existing contact, it's OK
               status.code = 200;
             } else {
@@ -343,10 +347,10 @@ function processMessage(msg) {
       var signature = decObj.signature;
       // TODO additional integrity checks
       if (content.to && content.from && isValidTorHiddenServiceName(content.from) && content.type && content.msgText) {
-        if (contactList.getKey(content.from)) {
+        if (contactList.has(content.from)) {
           switch (content.type) {
             case 'message':
-              var tmpCrypto = new NoxCrypto({'pubPEM': contactList.getKey(content.from).pubPEM});
+              var tmpCrypto = new NoxCrypto({'pubPEM': contactList.get(content.from).pubPEM});
               if (tmpCrypto.signatureVerified(jsStringify(content), signature)) {
                 console.log('[process message] Message is properly signed.');
                 if (content.to==myAddress && content.from!==undefined && content.from && content.from!==myAddress) {
@@ -376,7 +380,7 @@ function startHiddenService() {
     return element.name=='noxious';
   }
 
-  noxiousProperties=serviceList.filter(noxiousExists);
+  var noxiousProperties = serviceList.filter(noxiousExists);
   if (noxiousProperties==0) {
     // does not exist, create it
     console.log('Creating new noxious service');
@@ -421,7 +425,7 @@ app.on('ready', function() {
   // Create the browser window.
   mainWindow = new BrowserWindow({width: 900, height: 600});
 //  mainWindow = new BrowserWindow({width: 900, height: 600, 'web-preferences': {'overlay-scrollbars': true}});
-//  mainWindow.openDevTools();
+  mainWindow.openDevTools();
 
   ths.start(false, function () {
     console.log("tor Started!");
@@ -483,7 +487,7 @@ app.on('ready', function() {
           myNoxClient.transmitObject(content.contactAddress, buildContactRequest(content.contactAddress), function(res) {
             if(res.status == 200) {
               // pull the info from the contactRequestList and make a new conact.
-              contactList.addKey(content.contactAddress, contactRequestList.getKey(content.contactAddress));
+              contactList.set(content.contactAddress, { pubPEM: contactRequestList.getKey(content.contactAddress).pubPEM, contactAddress: content.contactAddress });
               // remove the contact request and save
               contactRequestList.delKey(content.contactAddress);
               // for now, just reinit the contact lists
@@ -528,7 +532,7 @@ app.on('ready', function() {
           msgObj.content = { type: 'contact',
             message: 'You may not send a contact request to your own Client ID.'};
           notifyGUI(msgObj);
-        } else if (contactList.getKey(content.contactAddress)) {
+        } else if (contactList.has(content.contactAddress)) {
           var msgObj = {};
           msgObj.method = 'error';
           msgObj.content = { type: 'contact',
@@ -555,17 +559,17 @@ app.on('ready', function() {
         transmitContactRequest(content.contactAddress);
         break;
       case 'setNickName':
-        var contactInfo = contactList.getKey(content.contactAddress);
+        var contactInfo = contactList.get(content.contactAddress);
         contactInfo.nickName=content.nickName;
-        contactList.addKey(content.contactAddress, contactInfo);
+        contactList.set(content.contactAddress, contactInfo);
         break;
       case 'delNickName':
-        var contactInfo = contactList.getKey(content.contactAddress);
+        var contactInfo = contactList.get(content.contactAddress);
         contactInfo.nickName='';
-        contactList.addKey(content.contactAddress, contactInfo);
+        contactList.set(content.contactAddress, contactInfo);
         break;
       case 'delContact':
-        contactList.delKey(content.contactAddress);
+        contactList.delete(content.contactAddress);
         getContacts(true);
         break;
     }
