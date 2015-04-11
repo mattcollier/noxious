@@ -95,7 +95,7 @@ function getContactRequests() {
 }
 
 function updateRequestStatus(contactAddress, status, updateGui) {
-  let updateGui = updateGui ? updateGui : true;
+  updateGui = updateGui ? updateGui : true;
   let tmpContact = contactRequestList.get(contactAddress);
   tmpContact.status=status;
   contactRequestList.set(contactAddress, tmpContact);
