@@ -12,8 +12,8 @@ var
   http = require('http'),
   DataFile = require('./DataFile'),
   // communications functions
-  NoxClient = require('./nox-client.js'),
-  myNoxClient = new NoxClient(),
+  NoxiousClient = require('./NoxiousClient'),
+  myNoxClient = new NoxiousClient(),
   // cononical json.stringify
   // This is used to stringify objects in a consistent way prior to hashing/signing
   jsStringify = require('canonical-json'),
