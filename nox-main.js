@@ -22,8 +22,8 @@ var
   BrowserWindow = require('browser-window'),  // Module to create native browser window.
   thsBuilder = require('ths'),
   ths = new thsBuilder(app.getPath('userData')),
-  NoxCrypto = require('./nox-crypto.js'),
-  myCrypto = new NoxCrypto({ path: Path.join(app.getPath('userData'), 'PrivateKey.json') }),
+  NoxiousCrypto = require('./NoxiousCrypto'),
+  myCrypto = new NoxiousCrypto({ path: Path.join(app.getPath('userData'), 'PrivateKey.json') }),
   dataTransmitDomain = require('domain').create(),
   contactRequestDomain = require('domain').create(),
   myAddress;
@@ -107,7 +107,7 @@ function updateRequestStatus(contactAddress, status, updateGui) {
 }
 
 function buildEncryptedMessage(destAddress, msgText) {
-  let tmpCrypto = new NoxCrypto({ 'pubPEM': contactList.get(destAddress).pubPEM });
+  let tmpCrypto = new NoxiousCrypto({ 'pubPEM': contactList.get(destAddress).pubPEM });
   let msgContent = {};
   msgContent.type = 'message';
   msgContent.from = myAddress;
@@ -273,7 +273,7 @@ function preProcessMessage(msg) {
               // so far so good, but now check the pubkey, reset status code
               status.code = 403;
               var minKeySize = 3072;
-              var tmpCrypto = new NoxCrypto({ 'pubPEM': content.pubPEM });
+              var tmpCrypto = new NoxiousCrypto({ 'pubPEM': content.pubPEM });
               var keySize = tmpCrypto.keySize;
               console.log('[preprocessing message] The key size is ', keySize, 'bits.');
               if (keySize < minKeySize) {
@@ -316,7 +316,7 @@ function processMessage(msg) {
   switch (content.type) {
     case 'introduction':
       var signature = msgObj.signature;
-      var tmpCrypto = new NoxCrypto({ 'pubPEM': content.pubPEM });
+      var tmpCrypto = new NoxiousCrypto({ 'pubPEM': content.pubPEM });
       if (tmpCrypto.signatureVerified(jsStringify(content), signature)) {
         console.log('[process message] Introduction is properly signed.');
         // TODO enhance from address checking, for now, not null or undefined, and not myAddress
@@ -340,7 +340,7 @@ function processMessage(msg) {
         if (contactList.has(content.from)) {
           switch (content.type) {
             case 'message':
-              var tmpCrypto = new NoxCrypto({'pubPEM': contactList.get(content.from).pubPEM});
+              var tmpCrypto = new NoxiousCrypto({'pubPEM': contactList.get(content.from).pubPEM});
               if (tmpCrypto.signatureVerified(jsStringify(content), signature)) {
                 console.log('[process message] Message is properly signed.');
                 if (content.to==myAddress && content.from!==undefined && content.from && content.from!==myAddress) {
