@@ -114,7 +114,8 @@ function buildEncryptedMessage(destAddress, msgText) {
   // encrypt using recipients public key
   let encryptedData = tmpCrypto.encrypt(JSON.stringify(msgObj));
   let encObj = {};
-  encObj.content = {type: 'encryptedData', clearFrom: myAddress, data: encryptedData};
+  encObj.content = { type: 'encryptedData', clearFrom: myAddress, data: encryptedData};
+  encObj.protocol = '1.0';
   return encObj;
 }
 
@@ -128,6 +129,7 @@ function buildContactRequest(destAddress) {
   var msgObj = {};
   msgObj.content = introObj;
   msgObj.signature = signature;
+  msgObj.protocol = '1.0';
   return msgObj;
 }
 
@@ -147,6 +149,10 @@ function transmitContactRequest(destAddress) {
             case 'EKEYSIZE':
               msgObj.content = { type: 'contact',
                 message: 'The contact request was rejected because your public encryption key is not proper.  Please upgrade your Noxious software.'};
+              break;
+            case 'EPROTOCOLVERSION':
+              msgObj.content = { type: 'contact',
+                message: 'The contact request was rejected because the message format is not proper.  Please upgrade your Noxious software.'};
               break;
             default:
               msgObj.content = { type: 'contact',
@@ -180,28 +186,14 @@ var server = http.createServer(function (req, res){
         }
       });
       req.on('end', function() {
-        var status = preProcessMessage(reqBody);
-        switch(status.code) {
-          case 200:
-            res.writeHead(200, {'Content-Type': 'application/json'});
-            res.write(JSON.stringify( { status: 'OK' }));
-            break;
-          case 409:
-            res.writeHead(409, {'Content-Type': 'application/json'});
-            res.write(JSON.stringify({ reason: status.reason }));
-            break;
-          case 410:
-            res.writeHead(410, {'Content-Type': 'application/json'});
-            res.write(JSON.stringify({ reason: status.reason }));
-            break;
-          case 403:
-            res.writeHead(403, {'Content-Type': 'application/json'});
-            res.write(JSON.stringify({ reason: status.reason }));
-            break;
-        }
-        res.end();
-        if(status.code == 200) {
+        let status = preProcessMessage(reqBody);
+        if (status.code == 200) {
+          res.writeHead(200, {'Content-Type': 'application/json'});
+          res.end(JSON.stringify( { status: 'OK' }));
           processMessage(reqBody);
+        } else {
+          res.writeHead(status.code, {'Content-Type': 'application/json'});
+          res.end(JSON.stringify({ reason: status.reason }));
         }
       });
     }
@@ -251,54 +243,61 @@ function preProcessMessage(msg) {
   var msgObj = JSON.parse(msg);
   console.log('[preprocessing message] Start');
   // TODO this function should verify message integrity
-  if (msgObj.content !== undefined) {
-    var content = msgObj.content;
-    if (content.type !== undefined) {
-      switch (content.type) {
-        case 'introduction':
-          if (content.from !== undefined && content.from && isValidTorHiddenServiceName(content.from)) {
-            if(!contactList.has(content.from) && !contactRequestList.has(content.from)) {
-              // we don't know this person already, intro is OK
-              status.code = 200;
-            } else if (contactRequestList.has(content.from) &&
-              contactRequestList.get(content.from)['direction'] == 'outgoing' &&
-              contactRequestList.get(content.from)['status'] == 'delivered') {
-              // we're expecting to hear back from this person, intro is OK
-              status.code = 200;
-            } else {
-              // contact request (key exchange) process needs to be repeated.
-              status.code = 409;
+  if (msgObj.protocol === '1.0') {
+    if (msgObj.content !== undefined) {
+      var content = msgObj.content;
+      if (content.type !== undefined) {
+        switch (content.type) {
+          case 'introduction':
+            if (content.from !== undefined && content.from && isValidTorHiddenServiceName(content.from)) {
+              if(!contactList.has(content.from) && !contactRequestList.has(content.from)) {
+                // we don't know this person already, intro is OK
+                status.code = 200;
+              } else if (contactRequestList.has(content.from) &&
+                contactRequestList.get(content.from)['direction'] == 'outgoing' &&
+                contactRequestList.get(content.from)['status'] == 'delivered') {
+                // we're expecting to hear back from this person, intro is OK
+                status.code = 200;
+              } else {
+                // contact request (key exchange) process needs to be repeated.
+                status.code = 409;
+              }
             }
-          }
-          if (status.code == 200) {
-            // so far so good, but now check the pubkey, reset status code
-            status.code = 403;
-            var minKeySize = 3072;
-            var tmpCrypto = new NoxCrypto({ 'pubPEM': content.pubPEM });
-            var keySize = tmpCrypto.keySize;
-            console.log('[preprocessing message] The key size is ', keySize, 'bits.');
-            if (keySize < minKeySize) {
-              console.log('[preprocessing message] The key must be at least ', minKeySize, ' bits');
-              status.code = 409;
-              status.reason = 'EKEYSIZE';
-            } else {
-              console.log('[preprocessing message] The key size meets the ', minKeySize, 'bit requirement');
-              status.code = 200;
+            if (status.code == 200) {
+              // so far so good, but now check the pubkey, reset status code
+              status.code = 403;
+              var minKeySize = 3072;
+              var tmpCrypto = new NoxCrypto({ 'pubPEM': content.pubPEM });
+              var keySize = tmpCrypto.keySize;
+              console.log('[preprocessing message] The key size is ', keySize, 'bits.');
+              if (keySize < minKeySize) {
+                console.log('[preprocessing message] The key must be at least ', minKeySize, ' bits');
+                status.code = 409;
+                status.reason = 'EKEYSIZE';
+              } else {
+                console.log('[preprocessing message] The key size meets the ', minKeySize, 'bit requirement');
+                status.code = 200;
+              }
             }
-          }
-          break;
-        case 'encryptedData':
-          if (content.clearFrom !== undefined && content.clearFrom && isValidTorHiddenServiceName(content.clearFrom)) {
-            if(contactList.has(content.clearFrom)) {
-              // this is from an existing contact, it's OK
-              status.code = 200;
-            } else {
-              // there is no public key for this contact
-              status.code = 410;
+            break;
+          case 'encryptedData':
+            if (content.clearFrom !== undefined && content.clearFrom && isValidTorHiddenServiceName(content.clearFrom)) {
+              if(contactList.has(content.clearFrom)) {
+                // this is from an existing contact, it's OK
+                status.code = 200;
+              } else {
+                // there is no public key for this contact
+                status.code = 410;
+              }
             }
-          }
-          break;
+            break;
+        }
       }
+    } else {
+      // protocol version mismatch
+      console.log('[preprocessing message] Protocol version mismatch.');
+      status.code = 409;
+      status.reason = 'EPROTOCOLVERSION';
     }
   }
   return status;
@@ -434,17 +433,16 @@ app.on('ready', function() {
         var encObj = buildEncryptedMessage(content.destAddress, content.msgText);
         dataTransmitDomain.run(function() {
           myNoxClient.transmitObject(content.destAddress, encObj, function(res) {
+            var msgObj = {};
             switch(res.status) {
               case 200:
-                // sent OK, update GUI
-                var msgObj = {};
+                // OK
                 msgObj.method = 'message';
                 msgObj.content = { type: 'status', status: 'delivered', msgId: content.msgId };
                 notifyGUI(msgObj);
                 break;
               case 410:
                 // recipient does not have the public key (anymore)
-                var msgObj = {};
                 msgObj.method = 'error';
                 msgObj.content = { type: 'message',
                   message: 'The recipient no longer has you in their contact list.  Delete the contact, then send a contact request.'};
@@ -452,6 +450,20 @@ app.on('ready', function() {
                 msgObj.method = 'message';
                 msgObj.content = { type: 'status', status: 'failed', msgId: content.msgId };
                 notifyGUI(msgObj);
+                break;
+              case 409:
+                var failedReason = res.body['reason'];
+                switch (failedReason) {
+                  case 'EPROTOCOLVERSION':
+                    msgObj.method = 'error';
+                    msgObj.content = { type: 'message',
+                      message: 'The message was rejected because the message format is not proper.  Please upgrade your Noxious software.'};
+                    notifyGUI(msgObj);
+                    msgObj.method = 'message';
+                    msgObj.content = { type: 'status', status: 'failed', msgId: content.msgId };
+                    notifyGUI(msgObj);
+                    break;
+                }
                 break;
             }
           });

@@ -16,7 +16,6 @@ function NoxClient () {
 NoxClient.prototype.transmitObject = function (destAddress, msg, cb) {
 
   postData = JSON.stringify(msg);
-  // console.log('Stringified PostData: ', postData);
   // localDNS: false is a critical parameter here, this allows lookup of hidden (*.onion) addresses.
   // proxy here refers to the tor instance
 
@@ -50,7 +49,6 @@ NoxClient.prototype.transmitObject = function (destAddress, msg, cb) {
       }
     });
   });
-
   postReq.write(postData,'utf8');
   postReq.end();
 }
