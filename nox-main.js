@@ -94,10 +94,14 @@ function getContactRequests() {
   notifyGUI(msgObj);
 }
 
-function updateRequestStatus(contactAddress, status) {
+function updateRequestStatus(contactAddress, status, updateGui) {
+  let updateGui = updateGui ? updateGui : true;
   let tmpContact = contactRequestList.get(contactAddress);
   tmpContact.status=status;
   contactRequestList.set(contactAddress, tmpContact);
+  if (updateGui) {
+    getContactRequests();
+  }
 }
 
 function buildEncryptedMessage(destAddress, msgText) {
@@ -479,7 +483,7 @@ app.on('ready', function() {
       case 'acceptContactRequest':
         // user has chosen to accept the contact request
         // send a contact request to sender to provide pubKey
-        updateRequestStatus(content.contactAddress, 'sending');
+        updateRequestStatus(content.contactAddress, 'sending', false);
         contactRequestDomain.run(function() {
           myNoxClient.transmitObject(content.contactAddress, buildContactRequest(content.contactAddress), function(res) {
             if(res.status == 200) {
