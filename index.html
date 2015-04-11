@@ -344,10 +344,10 @@
             // blank lines should not be transmitted
             alert('Blank lines will not be transmitted.');
           } else {
+            $(this).val('');
             var messageId = postChat(contactAddress, myAddress, chatText);
             sendMessage(contactAddress, chatText, messageId);
           }
-          $(this).val('');
         }
       });
 

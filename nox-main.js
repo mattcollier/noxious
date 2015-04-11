@@ -335,8 +335,8 @@ function processMessage(msg) {
       console.log('Decrypted Data: ', decObj);
       var content = decObj.content;
       var signature = decObj.signature;
-      // TODO additional integrity checks
-      if (content.to && content.from && isValidTorHiddenServiceName(content.from) && content.type && content.msgText) {
+      // TODO additional integrity checks?
+      if (content.to && content.to == myAddress && content.from && isValidTorHiddenServiceName(content.from) && content.type && content.msgText) {
         if (contactList.has(content.from)) {
           switch (content.type) {
             case 'message':
