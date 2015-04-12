@@ -30,9 +30,11 @@ function NoxiousCrypto (obj) {
       privPEM = keyData.get('PEM');
     } else {
       // key was not on disk, create a new one
-      console.log('[Nox-Crypto] Creating new Key');
+      console.log('[Nox-Crypto] Creating new Key A');
       this.keys = ursa.generatePrivateKey(this.newKeySize, 65537);
-      privPEM = keys.toPrivatePem('base64');
+      console.log('[Nox-Crypto] Creating new Key B');
+      this.privPEM = keys.toPrivatePem('base64');
+      console.log('[Nox-Crypto] Creating new Key C');
       keyData.set('PEM', privPEM);
     }
     console.log('[Nox-Crypto] Creating Private Key');
