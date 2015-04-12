@@ -13,7 +13,6 @@ function NoxiousCrypto (obj) {
   // this should be user configurable, and then saved as part of the key object.
   this.keySize=0;
   this.newKeySize=3072;
-  var keys, privPEM;
 
   // accepts either dir, filename or public key
   if(obj['pubPEM']) {
@@ -25,7 +24,7 @@ function NoxiousCrypto (obj) {
     // assume it's a dataDir and filename
     keyData = new DataFile(obj.path);
     if(keyData.has('PEM')) {
-      console.log('[Nox-Crypto] PrivateKey Already Exists');
+      console.log('[Nox-Crypto] PrivateKey PEM Already Exists');
       // key already exists
       privPEM = keyData.get('PEM');
     } else {
@@ -37,7 +36,7 @@ function NoxiousCrypto (obj) {
       console.log('[Nox-Crypto] Creating new Key C');
       keyData.set('PEM', privPEM);
     }
-    console.log('[Nox-Crypto] Creating Private Key');
+    console.log('[Nox-Crypto] Creating Private Key Object');
     this.myPrivKey = ursa.createPrivateKey(privPEM, '', 'base64');
     // make a public key, to be used for encryption
     this.pubPEM = this.myPrivKey.toPublicPem('base64');
