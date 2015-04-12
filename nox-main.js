@@ -22,7 +22,7 @@ var
   BrowserWindow = require('browser-window'),  // Module to create native browser window.
   thsBuilder = require('ths'),
   ths = new thsBuilder(app.getPath('userData')),
-  NoxiousCrypto = require('./NoxiousCrypto'),
+  NoxiousCrypto = require('./nox-crypto'),
   myCrypto = new NoxiousCrypto({ path: Path.join(app.getPath('userData'), 'PrivateKey.json') }),
   dataTransmitDomain = require('domain').create(),
   contactRequestDomain = require('domain').create(),
