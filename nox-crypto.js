@@ -1,11 +1,11 @@
 var ursa = require('ursa');
-var Object2File = require(__dirname + '/object2file.js');
+var DataFile = require('./DataFile');
 
 function isEmptyObject(obj) {
   return !Object.keys(obj).length;
 }
 
-function NoxCrypto (obj) {
+function NoxiousCrypto (obj) {
   this.myPrivKey='';
   this.pubPEM;
   this.myPubKey='';
@@ -23,29 +23,25 @@ function NoxCrypto (obj) {
     this.keySize = this.myPubKey.getModulus().length*8;
   } else {
     // assume it's a dataDir and filename
-    keyData = new Object2File(obj.dataDir, obj.fileName);
-    keyData.getContent((function(content) {
-      if(!isEmptyObject(content)) {
-        // key already exists
-        keys = ursa.createPrivateKey(content.PEM, '', 'base64');
-        privPEM = keys.toPrivatePem('base64');
-
-      } else {
-        // key was not on disk, create a new one
-        keys = ursa.generatePrivateKey(this.newKeySize, 65537);
-        privPEM = keys.toPrivatePem('base64');
-        keyData.addKey('PEM', privPEM);
-      }
-      this.myPrivKey = ursa.createPrivateKey(privPEM, '', 'base64');
-      // make a public key, to be used for encryption
-      this.pubPEM = this.myPrivKey.toPublicPem('base64');
-      this.myPubKey = ursa.createPublicKey(this.pubPEM, 'base64');
-      this.keySize = this.myPubKey.getModulus().length*8;
-    }).bind(this));
+    keyData = new DataFile(obj.path);
+    if(keyData.has('PEM')) {
+      // key already exists
+      privPEM = keyData.get('PEM');
+    } else {
+      // key was not on disk, create a new one
+      keys = ursa.generatePrivateKey(this.newKeySize, 65537);
+      privPEM = keys.toPrivatePem('base64');
+      keyData.addKey('PEM', privPEM);
+    }
+    this.myPrivKey = ursa.createPrivateKey(privPEM, '', 'base64');
+    // make a public key, to be used for encryption
+    this.pubPEM = this.myPrivKey.toPublicPem('base64');
+    this.myPubKey = ursa.createPublicKey(this.pubPEM, 'base64');
+    this.keySize = this.myPubKey.getModulus().length*8;
   }
 }
 
-NoxCrypto.prototype.encrypt = function(plainText) {
+NoxiousCrypto.prototype.encrypt = function(plainText) {
   var keySizeBytes = this.keySize/8;
   var buffer = new Buffer(plainText);
   var maxBufferSize = keySizeBytes - 42; //according to ursa documentation
@@ -67,7 +63,7 @@ NoxCrypto.prototype.encrypt = function(plainText) {
   return Buffer.concat(encryptedBuffersList).toString('base64');
 }
 
-NoxCrypto.prototype.decrypt = function(cipherText) {
+NoxiousCrypto.prototype.decrypt = function(cipherText) {
   var keySizeBytes = this.keySize/8;
   var encryptedBuffer = new Buffer(cipherText, 'base64');
   var decryptedBuffers = [];
@@ -89,16 +85,16 @@ NoxCrypto.prototype.decrypt = function(cipherText) {
   return Buffer.concat(decryptedBuffers).toString();
 }
 
-NoxCrypto.prototype.signString = function(data) {
+NoxiousCrypto.prototype.signString = function(data) {
   var signature = this.myPrivKey.hashAndSign('sha256' , new Buffer(data) , undefined, 'base64', true);
   return signature;
 }
 
-NoxCrypto.prototype.signatureVerified = function(data, signature) {
+NoxiousCrypto.prototype.signatureVerified = function(data, signature) {
   // receive public key in PEM format, data, and a signature
   // returns true if signature is valid.
   var verified = this.myPubKey.hashAndVerify('sha256', new Buffer(data), signature, 'base64', true);
   return verified;
 }
 
-module.exports = NoxCrypto;
+module.exports = NoxiousCrypto;
