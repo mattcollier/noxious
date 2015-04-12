@@ -25,14 +25,17 @@ function NoxiousCrypto (obj) {
     // assume it's a dataDir and filename
     keyData = new DataFile(obj.path);
     if(keyData.has('PEM')) {
+      console.log('[Nox-Crypto] PrivateKey Already Exists');
       // key already exists
       privPEM = keyData.get('PEM');
     } else {
       // key was not on disk, create a new one
+      console.log('[Nox-Crypto] Creating new Key');
       keys = ursa.generatePrivateKey(this.newKeySize, 65537);
       privPEM = keys.toPrivatePem('base64');
-      keyData.addKey('PEM', privPEM);
+      keyData.set('PEM', privPEM);
     }
+    console.log('[Nox-Crypto] Creating Private Key');
     this.myPrivKey = ursa.createPrivateKey(privPEM, '', 'base64');
     // make a public key, to be used for encryption
     this.pubPEM = this.myPrivKey.toPublicPem('base64');
