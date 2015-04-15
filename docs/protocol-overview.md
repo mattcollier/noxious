@@ -13,12 +13,15 @@ to accept messages arriving at the hidden service name.  The Tor network is resp
 for delivering messages to their destination.  Messages sent from a Tor client
 to a Tor hidden service never leave the Tor network which would make it difficult
 for anyone, including other chat participants, to determine a user's physical
-location.  At the time of this writing, ALL traffic passing over the Tor network
-is encrypted using the RSA algorithm using a 1024 bit key.
+location.
 
 ### Message Encryption
 
-All Noxious chat messages are digitally signed, then encrypted using the RSA
+All traffic on the Tor network is encrypted using a symmetric key algorithm.  The
+key used by the symmetric algorithm is changed frequently.  This means that it would
+be very difficult to decrypt stored network traffic at some future date.
+
+Additionally, all Noxious chat messages are digitally signed, then encrypted using the RSA
 algorithm using a 3072 bit key before they are passed to the Tor network for
 delivery.  The public key is used to encrypt the message and only the person
 possessing the matching private key will be able to decrypt the message.  Before
