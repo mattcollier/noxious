@@ -131,10 +131,9 @@ function buildContactRequest(destAddress) {
   introObj.from = myAddress;
   introObj.to = destAddress;
   introObj.pubPem = myCrypto.pubPem;
-  let signature = myCrypto.signString(jsStringify(introObj));
   let msgObj = {};
   msgObj.content = introObj;
-  msgObj.signature = new Buffer(signature).toString('base64');
+  msgObj.signature = myCrypto.signString(jsStringify(introObj));
   msgObj.protocol = '1.0';
   return msgObj;
 }
