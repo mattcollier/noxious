@@ -16,11 +16,10 @@ class NoxiousCrypto{
     this.newKeySize=3072;
 
     // accepts either dir, filename or public key
-    if(obj['pubPEM']) {
+    if(obj['pubPem']) {
       // object has public Key
-      this.pubPEM=obj.pubPEM;
-      this.myPubKey = pki.publicKeyFromPem(this.pubPEM);
-      //this.keySize = this.myPubKey.getModulus().length*8;
+      this.pubPem=obj.pubPem;
+      this.myPubKey = pki.publicKeyFromPem(this.pubPem);
       this.keySize = this.myPubKey.n.bitLength();
     } else {
       // assume it's a dataDir and filename
