@@ -61,10 +61,10 @@ class NoxiousCrypto{
     }
   }
   encrypt(plainText) {
-    return this.myPubKey.encrypt(plainText, 'RSA-OAEP');
+    return new Buffer(this.myPubKey.encrypt(plainText, 'RSA-OAEP'), binary).toString('base64');
   }
   decrypt(cipherText) {
-    return this.myPrivKey.decrypt(cipherText, 'RSA-OAEP');
+    return this.myPrivKey.decrypt(new Buffer(cipherText, 'base64').toString('binary'), 'RSA-OAEP');
   }
   signString(data) {
     //let signature = this.myPrivKey.hashAndSign('sha256' , new Buffer(data) , undefined, 'base64', true);
