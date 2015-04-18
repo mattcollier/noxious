@@ -133,8 +133,15 @@ function buildContactRequest(destAddress) {
   introObj.pubPem = myCrypto.pubPem;
   let msgObj = {};
   msgObj.content = introObj;
+  // msgObj.signature = new Buffer(myCrypto.signString(jsStringify(introObj)), 'binary').toString('base64');
   msgObj.signature = myCrypto.signString(jsStringify(introObj));
   msgObj.protocol = '1.0';
+  console.log('[buildContactRequest] signature: ', msgObj.signature);
+  if (myCrypto.signatureVerified(jsStringify(introObj), msgObj.signature)) {
+    console.log('[buildContactRequest] signature good');
+  } else {
+    console.log('[buildContactRequest] signature bad');
+  }
   return msgObj;
 }
 
