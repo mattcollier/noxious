@@ -1,4 +1,0 @@
-SocksPort 9999
-ControlPort 9998
-DataDirectory /home/matt/noxious/noxious-data/ths-data/torData
-HashedControlPassword undefined
