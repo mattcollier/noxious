@@ -76,7 +76,7 @@ class NoxiousCrypto{
       // optionally pass 'prng' with a custom PRNG implementation
       // optionalls pass 'salt' with a forge.util.ByteBuffer w/custom salt
     });
-    return myPrivKey.sign(md, pss);
+    return this.myPrivKey.sign(md, pss);
   }
   signatureVerified(data, signature) {
     // verify RSASSA-PSS signature
@@ -88,7 +88,7 @@ class NoxiousCrypto{
     });
     var md = forge.md.sha256.create();
     md.update(data, 'utf8');
-    return myPubKey.verify(md.digest().getBytes(), signature, pss);
+    return this.myPubKey.verify(md.digest().getBytes(), signature, pss);
   }
 }
 
