@@ -68,7 +68,7 @@ class NoxiousCrypto{
   }
   signString(data) {
     //let signature = this.myPrivKey.hashAndSign('sha256' , new Buffer(data) , undefined, 'base64', true);
-    var md = forge.md.sha256.create();
+    var md = forge.md.sha1.create();
     md.update(data, 'utf8');
     var pss = forge.pss.create({
       md: forge.md.sha1.create(),
@@ -87,7 +87,7 @@ class NoxiousCrypto{
       saltLength: 20
       // optionally pass 'prng' with a custom PRNG implementation
     });
-    var md = forge.md.sha256.create();
+    var md = forge.md.sha1.create();
     md.update(data, 'utf8');
     return this.myPubKey.verify(md.digest().getBytes(), new Buffer(signature).toString('binary'), pss);
   }
