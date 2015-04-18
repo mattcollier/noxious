@@ -130,8 +130,11 @@ function buildContactRequest(destAddress) {
   introObj.type = 'introduction';
   introObj.from = myAddress;
   introObj.to = destAddress;
-  introObj.pubPEM = myCrypto.pubPEM;
+  introObj.pubPem = myCrypto.pubPem;
+  console.log('[buildContactRequest] introObj: ', introObj);
   var signature = myCrypto.signString(jsStringify(introObj));
+  var s = new Buffer(signature).toString('base64');
+  console.log('[buildContactRequest] signature: ', s);
   var msgObj = {};
   msgObj.content = introObj;
   msgObj.signature = signature;
@@ -192,6 +195,7 @@ var server = http.createServer(function (req, res){
         }
       });
       req.on('end', function() {
+        console.log('[HTTP Server] ', reqBody );
         let status = preProcessMessage(reqBody);
         if (status.code == 200) {
           res.writeHead(200, {'Content-Type': 'application/json'});

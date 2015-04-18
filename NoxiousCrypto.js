@@ -9,7 +9,7 @@ var
 class NoxiousCrypto{
   constructor(obj) {
     this.myPrivKey='';
-    this.pubPEM;
+    this.pubPem;
     this.myPubKey='';
     this.keySize=0;
     // default size for new keys
@@ -28,7 +28,8 @@ class NoxiousCrypto{
       if(keyData.has('privPem')) {
         // key already exists
         this.myPrivKey = pki.privateKeyFromPem(keyData.get('privPem'));
-        this.myPubKey = pki.publicKeyFromPem(keyData.get('pubPem'));
+        this.pubPem = keyData.get('pubPem');
+        this.myPubKey = pki.publicKeyFromPem(this.pubPem);
         this.keySize = this.myPubKey.n.bitLength();
         console.log('[NoxiousCrypto] Existing Key Bits: ', this.keySize);
       } else {
