@@ -1,10 +1,10 @@
 {
   "name": "noxious",
-  "version": "0.0.7-alpha",
+  "version": "0.0.8-alpha",
   "description": "secure anonymous instant messaging client built on atom-shell",
   "main": "nox-main.js",
   "scripts": {
-    "start": "atom-shell ."
+    "start": "electron ."
   },
   "repository": {
     "type": "git",
@@ -20,8 +20,8 @@
     "bootstrap": "^3.3.2",
     "canonical-json": "0.0.4",
     "jquery": "^2.1.3",
+    "node-forge": "^0.6.25",
     "socksv5": "0.0.4",
-    "ths": "git+https://github.com/Mowje/node-ths.git#dev",
-    "ursa": "git+https://github.com/quartzjer/ursa.git"
+    "ths": "git+https://github.com/Mowje/node-ths.git#dev"
   }
 }
