@@ -71,8 +71,8 @@ class NoxiousCrypto{
     var md = forge.md.sha256.create();
     md.update(data, 'utf8');
     var pss = forge.pss.create({
-      md: forge.md.sha256.create(),
-      mgf: forge.mgf.mgf1.create(forge.md.sha256.create()),
+      md: forge.md.sha1.create(),
+      mgf: forge.mgf.mgf1.create(forge.md.sha1.create()),
       saltLength: 20
       // optionally pass 'prng' with a custom PRNG implementation
       // optionalls pass 'salt' with a forge.util.ByteBuffer w/custom salt
@@ -82,8 +82,8 @@ class NoxiousCrypto{
   signatureVerified(data, signature) {
     // verify RSASSA-PSS signature
     let pss = forge.pss.create({
-      md: forge.md.sha256.create(),
-      mgf: forge.mgf.mgf1.create(forge.md.sha256.create()),
+      md: forge.md.sha1.create(),
+      mgf: forge.mgf.mgf1.create(forge.md.sha1.create()),
       saltLength: 20
       // optionally pass 'prng' with a custom PRNG implementation
     });
