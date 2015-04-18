@@ -107,7 +107,7 @@ function updateRequestStatus(contactAddress, status, updateGui) {
 }
 
 function buildEncryptedMessage(destAddress, msgText) {
-  let tmpCrypto = new NoxiousCrypto({ 'pubPEM': contactList.get(destAddress).pubPEM });
+  let tmpCrypto = new NoxiousCrypto({ 'pubPem': contactList.get(destAddress).pubPem });
   let msgContent = {};
   msgContent.type = 'message';
   msgContent.from = myAddress;
@@ -126,18 +126,15 @@ function buildEncryptedMessage(destAddress, msgText) {
 }
 
 function buildContactRequest(destAddress) {
-  var introObj = {};
+  let introObj = {};
   introObj.type = 'introduction';
   introObj.from = myAddress;
   introObj.to = destAddress;
   introObj.pubPem = myCrypto.pubPem;
-  console.log('[buildContactRequest] introObj: ', introObj);
-  var signature = myCrypto.signString(jsStringify(introObj));
-  var s = new Buffer(signature).toString('base64');
-  console.log('[buildContactRequest] signature: ', s);
-  var msgObj = {};
+  let signature = myCrypto.signString(jsStringify(introObj));
+  let msgObj = {};
   msgObj.content = introObj;
-  msgObj.signature = signature;
+  msgObj.signature = new Buffer(signature).toString('base64');
   msgObj.protocol = '1.0';
   return msgObj;
 }
@@ -222,7 +219,7 @@ function registerContactRequest(req) {
   // TODO is a date/time wanted or needed here? Other Data?
   // this same data structure is copied to the contact list upon acceptance.
   var tmpObj = {};
-  tmpObj.pubPEM = req.pubPEM  ;
+  tmpObj.pubPem = req.pubPem  ;
   tmpObj.contactAddress = req.from;
   // check for dups in requests list and contact list
   if(!contactRequestList.has(req.from) && !contactList.has(req.from)) {
@@ -236,7 +233,7 @@ function registerContactRequest(req) {
     notifyGUI(msgObj);
   } else if (contactRequestList.has(req.from) && contactRequestList.get(req.from).direction == 'outgoing') {
     // this person accepted a contact request
-    contactList.set(req.from, { pubPEM: tmpObj.pubPEM, contactAddress: tmpObj.contactAddress });
+    contactList.set(req.from, { pubPem: tmpObj.pubPem, contactAddress: tmpObj.contactAddress });
     contactRequestList.delete(req.from);
     getContacts();
     getContactRequests();
@@ -251,7 +248,7 @@ function preProcessMessage(msg) {
   status.code = 403;
   status.reason = '';
   var msgObj = JSON.parse(msg);
-  console.log('[preprocessing message] Start');
+  console.log('[preProcessMessage] Start');
   // TODO this function should verify message integrity
   if (msgObj.protocol === '1.0') {
     if (msgObj.content !== undefined) {
@@ -277,7 +274,7 @@ function preProcessMessage(msg) {
               // so far so good, but now check the pubkey, reset status code
               status.code = 403;
               var minKeySize = 3072;
-              var tmpCrypto = new NoxiousCrypto({ 'pubPEM': content.pubPEM });
+              var tmpCrypto = new NoxiousCrypto({ 'pubPem': content.pubPem });
               var keySize = tmpCrypto.keySize;
               console.log('[preprocessing message] The key size is ', keySize, 'bits.');
               if (keySize < minKeySize) {
@@ -320,7 +317,7 @@ function processMessage(msg) {
   switch (content.type) {
     case 'introduction':
       var signature = msgObj.signature;
-      var tmpCrypto = new NoxiousCrypto({ 'pubPEM': content.pubPEM });
+      var tmpCrypto = new NoxiousCrypto({ 'pubPem': content.pubPem });
       if (tmpCrypto.signatureVerified(jsStringify(content), signature)) {
         console.log('[process message] Introduction is properly signed.');
         // TODO enhance from address checking, for now, not null or undefined, and not myAddress
@@ -344,7 +341,7 @@ function processMessage(msg) {
         if (contactList.has(content.from)) {
           switch (content.type) {
             case 'message':
-              var tmpCrypto = new NoxiousCrypto({'pubPEM': contactList.get(content.from).pubPEM});
+              var tmpCrypto = new NoxiousCrypto({'pubPem': contactList.get(content.from).pubPem});
               if (tmpCrypto.signatureVerified(jsStringify(content), signature)) {
                 console.log('[process message] Message is properly signed.');
                 if (content.to==myAddress && content.from!==undefined && content.from && content.from!==myAddress) {
@@ -493,7 +490,7 @@ app.on('ready', function() {
         contactRequestDomain.run(function() {
           myNoxClient.transmitObject(content.contactAddress, buildContactRequest(content.contactAddress), function(res) {
             if(res.status == 200) {
-              contactList.set(content.contactAddress, { pubPEM: contactRequestList.get(content.contactAddress).pubPEM, contactAddress: content.contactAddress });
+              contactList.set(content.contactAddress, { pubPem: contactRequestList.get(content.contactAddress).pubPem, contactAddress: content.contactAddress });
               contactRequestList.delete(content.contactAddress);
               getContacts();
               getContactRequests();

@@ -8,17 +8,18 @@ var
 
 class NoxiousCrypto{
   constructor(obj) {
-    this.myPrivKey='';
-    this.pubPem;
-    this.myPubKey='';
+    this.myPrivKey = null;
+    this.pubPem = null;
+    this.myPubKey = null;
     this.keySize=0;
     // default size for new keys
     this.newKeySize=3072;
 
     // accepts either dir, filename or public key
+    console.log('[NoxiousCrypto] obj: ', obj);
     if(obj['pubPem']) {
       // object has public Key
-      this.pubPem=obj.pubPem;
+      this.pubPem = obj.pubPem;
       this.myPubKey = pki.publicKeyFromPem(this.pubPem);
       this.keySize = this.myPubKey.n.bitLength();
     } else {
