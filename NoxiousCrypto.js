@@ -2,6 +2,7 @@
 
 var
   DataFile = require('./DataFile'),
+  forge = require('node-forge'),
   rsa = require('node-forge').pki.rsa,
   pki = require('node-forge').pki;
 
