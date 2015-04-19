@@ -24,6 +24,7 @@ contents of the introduction message have not been altered in transit.
     to: 'cniymubgqjzckk3s.onion',
     type: 'introduction'
   },
+  protocol: '1.0',
   signature: '<digitalSignature>'
 }
 ```
@@ -34,6 +35,7 @@ from      | property  | true  | UTF-8   | Sender's Tor hidden service name
 pubPEM    | property  | true  | BASE64  | Sender's public key in PEM format
 to        | property  | true  | UTF-8   | Recipient's Tor hidden service name
 type      | property  | true  | UTF-8   | must equal 'introduction'
+protocol  | property  | true  | UTF-8   | must equal '1.0'
 signature | property  | true  | BASE64  | Digital signature based on a SHA256 hash of a stringified version of the content object.
 
 #####Signing the 'content' object
@@ -52,7 +54,8 @@ public keys by way of sending and receiving 'introduction' messages.
     clearFrom: 'f5jya7neu64cmhuz.onion',
     data: '<encryptedContent>',
     type: 'encryptedData'
-  }
+  },
+  protocol: '1.0'
 }
 ```
 Name | Type | Required | Encoding | Description
@@ -61,6 +64,7 @@ content   | object    | true  |         |
 clearFrom | property  | true  | UTF-8   | Sender's Tor hidden service name
 data      | property  | true  | BASE64  | RSA encrypted [message 'content' object](#message-content-object)
 type      | property  | true  | UTF-8   | must equal 'encryptedData'
+protocol  | property  | true  | UTF-8   | must equal '1.0'
 
 #####The 'clearFrom' Property
 The 'clearFrom' property is used to quickly determine if the message is from a party
@@ -68,7 +72,6 @@ listed in the recipient's contact list.  This ensures that the sender's public
 key is on file and therefore the digital signature contained in the message can
 be verified.  A message from an unknown party is dropped which prevents the
 recipient from being spammed by an unknown sender.
-
 #####Message 'content' Object
 ```
 {
@@ -88,14 +91,12 @@ msgText   | property  | true  | UTF-8   | Plain text message
 to        | property  | true  | UTF-8   | Recipient's Tor hidden service name
 type      | property  | true  | UTF-8   | must equal 'introduction'
 signature | property  | true  | BASE64  | Digital signature based on a SHA256 hash of a stringified version of the content object.
-
 #####Signing the 'content' object
 The digital signature is based on a SHA256 hash of a stringified version of the
 'content' object.  JavaScript's built-in JSON.stringify() method does not
 guarantee that objects will be stringified in any particular order.  In io.js
 the [canonical-json module][CJ] is used to stringify the properties of the 'content'
 object in **alphabetical order** as shown in the example above.
-
 ###Transmitting Messages
 Messages are transmitted to the recipient's Tor hidden service name with an HTTP
 POST request on port 1111 via Tor's socksv5 proxy.  See the
