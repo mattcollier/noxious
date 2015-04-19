@@ -118,7 +118,12 @@ function buildEncryptedMessage(destAddress, msgText) {
   // sign using my private key
   msgObj.signature = myCrypto.signString(jsStringify(msgContent));
   // encrypt using recipients public key
-  let encryptedData = tmpCrypto.encrypt(JSON.stringify(msgObj));
+  // TODO %%%%%%%%%%%%%%%%% EXPERIMENTAL
+  //let encryptedData = tmpCrypto.encrypt(JSON.stringify(msgObj));
+  let encryptedData = myCrypto.binEncrypt(JSON.stringify(msgObj));
+  console.log('[buildEncryptedMessage] Encrypted: ', encryptedData);
+  let decryptedData = myCrypto.binDecrypt(encryptedData);
+  console.log('[buildEncryptedMessage] Decrypted: ', decryptedData);
   let encObj = {};
   encObj.content = { type: 'encryptedData', clearFrom: myAddress, data: encryptedData};
   encObj.protocol = '1.0';

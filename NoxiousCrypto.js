@@ -59,23 +59,43 @@ class NoxiousCrypto{
       }
     }
   }
+  binEncrypt(plainText) {
+    var keySizeBytes = Math.ceil(this.keySize/8);
+    var buffer = new Buffer(plainText, 'utf8');
+    var maxBufferSize = keySizeBytes - 42; //according to ursa documentation
+    var bytesEncrypted = 0;
+    var encryptedBuffersList = [];
+    //loops through all data buffer encrypting piece by piece
+    while(bytesEncrypted < buffer.length){
+      //calculates next maximun length for temporary buffer and creates it
+      var amountToCopy = Math.min(maxBufferSize, buffer.length - bytesEncrypted);
+      var tempBuffer = new Buffer(amountToCopy);
+      //copies next chunk of data to the temporary buffer
+      buffer.copy(tempBuffer, 0, bytesEncrypted, bytesEncrypted + amountToCopy);
+      //encrypts and stores current chunk
+      var encryptedBuffer = this.myPubKey.encrypt(tempBuffer, 'RSA-OAEP');
+      encryptedBuffersList.push(encryptedBuffer);
+      bytesEncrypted += amountToCopy;
+    }
+    return Buffer.concat(encryptedBuffersList);
+  }
   encrypt(plainText) {
     var keySizeBytes = Math.ceil(this.keySize/8);
     var buffer = new Buffer(plainText, 'utf8');
     var maxBufferSize = keySizeBytes - 42; //according to ursa documentation
-    var bytesDecrypted = 0;
+    var bytesEncrypted = 0;
     var encryptedBuffersList = [];
     //loops through all data buffer encrypting piece by piece
-    while(bytesDecrypted < buffer.length){
+    while(bytesEncrypted < buffer.length){
       //calculates next maximun length for temporary buffer and creates it
-      var amountToCopy = Math.min(maxBufferSize, buffer.length - bytesDecrypted);
+      var amountToCopy = Math.min(maxBufferSize, buffer.length - bytesEncrypted);
       var tempBuffer = new Buffer(amountToCopy);
       //copies next chunk of data to the temporary buffer
-      buffer.copy(tempBuffer, 0, bytesDecrypted, bytesDecrypted + amountToCopy);
+      buffer.copy(tempBuffer, 0, bytesEncrypted, bytesEncrypted + amountToCopy);
       //encrypts and stores current chunk
       var encryptedBuffer = new Buffer(this.myPubKey.encrypt(tempBuffer, 'RSA-OAEP'), 'binary');
       encryptedBuffersList.push(encryptedBuffer);
-      bytesDecrypted += amountToCopy;
+      bytesEncrypted += amountToCopy;
     }
     //encryptedBuffersList = [];
     //encryptedBuffersList.push(new Buffer('First Thing'));
@@ -85,10 +105,11 @@ class NoxiousCrypto{
     return Buffer.concat(encryptedBuffersList).toString('base64');
     //return new Buffer(this.myPubKey.encrypt(plainText, 'RSA-OAEP'), binary).toString('base64');
   }
-  decrypt(cipherText) {
+  binDecrypt(cipherText) {
+    console.log('****** cipherText length: ', cipherText.length);
     var keySizeBytes = Math.ceil(this.keySize/8);
-    var binaryString = new Buffer(cipherText, 'base64').toString('binary');
     var encryptedBuffer = new Buffer(binaryString, 'binary');
+    console.log('****** ebuffer length: ', encryptedBuffer.length);
     var decryptedBuffers = [];
     //if the plain text was encrypted with a key of size N, the encrypted
     //result is a string formed by the concatenation of strings of N bytes long,
@@ -102,6 +123,33 @@ class NoxiousCrypto{
       encryptedBuffer.copy(tempBuffer, 0, i*keySizeBytes, (i+1)*keySizeBytes);
       //decrypts and stores current chunk
       var decryptedBuffer = this.myPrivKey.decrypt(tempBuffer, 'RSA-OAEP');
+      // console.log('#### decrypted chunk: ', decryptpedBuffer.toString());
+      decryptedBuffers.push(decryptedBuffer);
+    }
+    //concatenates all decrypted buffers and returns the corresponding String
+    return Buffer.concat(decryptedBuffers).toString();
+  }
+  decrypt(cipherText) {
+    console.log('****** base64 length: ', cipherText.length);
+    var keySizeBytes = Math.ceil(this.keySize/8);
+    var binaryString = new Buffer(cipherText, 'base64').toString('binary');
+    console.log('****** binary length: ', binaryString.length);
+    var encryptedBuffer = new Buffer(binaryString, 'binary');
+    console.log('****** ebuffer length: ', encryptedBuffer.length);
+    var decryptedBuffers = [];
+    //if the plain text was encrypted with a key of size N, the encrypted
+    //result is a string formed by the concatenation of strings of N bytes long,
+    //so we can find out how many substrings there are by diving the final result
+    //size per N
+    var totalBuffers = encryptedBuffer.length / keySizeBytes;
+    //decrypts each buffer and stores result buffer in an array
+    for(var i = 0 ; i < totalBuffers; i++){
+      //copies next buffer chunk to be decrypted in a temp buffer
+      var tempBuffer = new Buffer(keySizeBytes);
+      encryptedBuffer.copy(tempBuffer, 0, i*keySizeBytes, (i+1)*keySizeBytes);
+      //decrypts and stores current chunk
+      var decryptedBuffer = this.myPrivKey.decrypt(tempBuffer, 'RSA-OAEP');
+      console.log('#### decrypted chunk: ', decryptpedBuffer.toString());
       decryptedBuffers.push(decryptedBuffer);
     }
     //concatenates all decrypted buffers and returns the corresponding String

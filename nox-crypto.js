@@ -48,7 +48,9 @@ function NoxiousCrypto (obj) {
 NoxiousCrypto.prototype.encrypt = function(plainText) {
   var keySizeBytes = this.keySize/8;
   var buffer = new Buffer(plainText);
-  var maxBufferSize = keySizeBytes - 42; //according to ursa documentation
+  // according to ursa documentation also 384 bytes(3072 bits) - maxLength reported
+  // by forge is 342 = 42
+  var maxBufferSize = keySizeBytes - 42;
   var bytesDecrypted = 0;
   var encryptedBuffersList = [];
   //loops through all data buffer encrypting piece by piece
@@ -68,7 +70,8 @@ NoxiousCrypto.prototype.encrypt = function(plainText) {
 }
 
 NoxiousCrypto.prototype.decrypt = function(cipherText) {
-  var keySizeBytes = this.keySize/8;
+  var keySizeBytes = Math.ceil(this.keySize/8);
+  console.log('****** base64 length: ', cipherText.length);
   var encryptedBuffer = new Buffer(cipherText, 'base64');
   var decryptedBuffers = [];
   //if the plain text was encrypted with a key of size N, the encrypted
