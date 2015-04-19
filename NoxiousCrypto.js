@@ -74,7 +74,6 @@ class NoxiousCrypto{
       buffer.copy(tempBuffer, 0, bytesEncrypted, bytesEncrypted + amountToCopy);
       //encrypts and stores current chunk
       var encryptedBuffer = new Buffer(this.myPubKey.encrypt(tempBuffer, 'RSA-OAEP'), 'binary');
-      console.log("encryptedBuffer is a Buffer : ", Buffer.isBuffer(encryptedBuffer));
       encryptedBuffersList.push(encryptedBuffer);
       bytesEncrypted += amountToCopy;
     }
