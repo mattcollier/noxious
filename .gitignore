@@ -1,5 +1,4 @@
 node_modules/
-noxious-data/
 build/
 npm-debug.log
-
+noxious-data/
