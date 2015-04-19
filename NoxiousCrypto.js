@@ -43,18 +43,15 @@ class NoxiousCrypto{
             process.nextTick(step);
           }
           else {
-            // done, turn off progress indicator, use state.keys
             console.log('[NoxiousCrypto] Key Generation Complete.');
             this.pubPem = pki.publicKeyToPem(state.keys.publicKey);
             keyData.set('privPem', pki.privateKeyToPem(state.keys.privateKey));
             keyData.set('pubPem', this.pubPem);
             this.myPrivKey = state.keys.privateKey;
-            // make a public key, to be used for encryption
             this.myPubKey = state.keys.publicKey;
             this.keySize = this.newKeySize;
           }
         }).bind(this);
-        // turn on progress indicator, schedule generation to run
         process.nextTick(step);
       }
     }
@@ -107,23 +104,17 @@ class NoxiousCrypto{
       md: forge.md.sha256.create(),
       mgf: forge.mgf.mgf1.create(forge.md.sha256.create()),
       saltLength: 20
-      // optionally pass 'prng' with a custom PRNG implementation
-      // optionalls pass 'salt' with a forge.util.ByteBuffer w/custom salt
     });
-    // return new Buffer(this.myPrivKey.sign(md, pss)).toString('base64');
     return new Buffer(this.myPrivKey.sign(md, pss), 'binary').toString('base64');
   }
   signatureVerified(data, signature) {
-    // verify RSASSA-PSS signature
     let pss = forge.pss.create({
       md: forge.md.sha256.create(),
       mgf: forge.mgf.mgf1.create(forge.md.sha256.create()),
       saltLength: 20
-      // optionally pass 'prng' with a custom PRNG implementation
     });
     var md = forge.md.sha256.create();
     md.update(data, 'utf8');
-    // return this.myPubKey.verify(md.digest().getBytes(), new Buffer(signature).toString('binary'), pss);
     return this.myPubKey.verify(md.digest().getBytes(), new Buffer(signature, 'base64').toString('binary'), pss);
   }
 }
