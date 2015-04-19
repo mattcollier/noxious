@@ -6,11 +6,13 @@ All communications are conducted between [tor hidden services](https://www.torpr
 
 ##Secure
 In addition to the encryption offered by the tor hidden service protocol, all chat messages are
-RSA public-key encrypted using a 3072 bit key.  All cryto is handled by native OpenSSL libraries via
-the [node ursa module](https://github.com/quartzjer/ursa).
+RSA public-key encrypted using a 3072 bit key.  All crytography is handled by the [forge module](https://github.com/digitalbazaar/forge).  Although forge is 100%
+JavaScript, it does access the CSPRNG (Cryptographically Secure Random Number
+Generator) provided by the native openssl library via a call to [node's crypto.randomBytes
+function](https://iojs.org/api/crypto.html#crypto_crypto_randombytes_size_callback).
 
 ##Platform
-noxious is built on the [Atom Shell Framework](https://github.com/atom/atom-shell).
+noxious is built on the [Electron Application Framework](https://github.com/atom/electron).
 
 ##Screenshot
 ![noxious screenshot](https://github.com/mattcollier/noxious/blob/screenshots/screenshot1.png)
