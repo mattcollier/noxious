@@ -102,12 +102,11 @@ class NoxiousCrypto{
     return Buffer.concat(decryptedBuffers).toString();
   }
   signString(data) {
-    //let signature = this.myPrivKey.hashAndSign('sha256' , new Buffer(data) , undefined, 'base64', true);
     var md = forge.md.sha1.create();
     md.update(data, 'utf8');
     var pss = forge.pss.create({
-      md: forge.md.sha1.create(),
-      mgf: forge.mgf.mgf1.create(forge.md.sha1.create()),
+      md: forge.md.sha256.create(),
+      mgf: forge.mgf.mgf1.create(forge.md.sha256.create()),
       saltLength: 20
       // optionally pass 'prng' with a custom PRNG implementation
       // optionalls pass 'salt' with a forge.util.ByteBuffer w/custom salt
@@ -118,12 +117,12 @@ class NoxiousCrypto{
   signatureVerified(data, signature) {
     // verify RSASSA-PSS signature
     let pss = forge.pss.create({
-      md: forge.md.sha1.create(),
-      mgf: forge.mgf.mgf1.create(forge.md.sha1.create()),
+      md: forge.md.sha256.create(),
+      mgf: forge.mgf.mgf1.create(forge.md.sha256.create()),
       saltLength: 20
       // optionally pass 'prng' with a custom PRNG implementation
     });
-    var md = forge.md.sha1.create();
+    var md = forge.md.sha256.create();
     md.update(data, 'utf8');
     // return this.myPubKey.verify(md.digest().getBytes(), new Buffer(signature).toString('binary'), pss);
     return this.myPubKey.verify(md.digest().getBytes(), new Buffer(signature, 'base64').toString('binary'), pss);
