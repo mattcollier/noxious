@@ -78,24 +78,11 @@ class NoxiousCrypto{
       encryptedBuffersList.push(encryptedBuffer);
       bytesEncrypted += amountToCopy;
     }
-    //let something = new Buffer(encryptedBuffersList.length * keySizeBytes);
-    //let bufferCount = 0;
     return Buffer.concat(encryptedBuffersList).toString('base64');
-    //console.log("BufferListSize :", encryptedBuffersList.length);
-    //for(let buf of encryptedBuffersList) {
-    //  console.log("Length of THIS buffer : ", buf.length);
-    //  buf.copy(something, bufferCount * keySizeBytes);
-    //  bufferCount++;
-    //}
-    //console.log('Length of Something: ', something.length);
   }
   decrypt(cipherText) {
-    console.log('****** cipherText length: ', cipherText.length);
     var keySizeBytes = Math.ceil(this.keySize/8);
-    // works for binary
-    //var encryptedBuffer = new Buffer(cipherText, 'binary');
     var encryptedBuffer = new Buffer(cipherText, 'base64');
-    console.log('****** ebuffer length: ', encryptedBuffer.length);
     var decryptedBuffers = [];
     //if the plain text was encrypted with a key of size N, the encrypted
     //result is a string formed by the concatenation of strings of N bytes long,
@@ -109,7 +96,6 @@ class NoxiousCrypto{
       encryptedBuffer.copy(tempBuffer, 0, i*keySizeBytes, (i+1)*keySizeBytes);
       //decrypts and stores current chunk
       var decryptedBuffer = this.myPrivKey.decrypt(tempBuffer.toString('binary'), 'RSA-OAEP');
-      // console.log('#### decrypted chunk: ', decryptpedBuffer.toString());
       decryptedBuffers.push(new Buffer(decryptedBuffer, 'utf8'));
     }
     //concatenates all decrypted buffers and returns the corresponding String
