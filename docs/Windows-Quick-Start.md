@@ -1,13 +1,10 @@
-## Installing Noxious on Windows 
+## Installing Noxious on Windows ##
 This guide is a work in progress, and is intended to be a quick start to getting Noxious to work on Windows.
 
-Install git from http://git-scm.com/downloads
-During the installation make sure you choose the option *Use Git from the Windows Command Prompt* as this will add git to your path. *note* you'll need to close out of any active command prompts and reopen for this change to take effect.
-=======
-#### Install git from http://git-scm.com/download/win 
+#### Install git from http://git-scm.com/download/win
 - During the installation make sure you choose the option *Use Git from the Windows Command Prompt* as this will add git to your path. *note* you'll need to close out of any active command prompts and reopen for this change to take effect.
 
-#### Install Tor from https://dist.torproject.org/win32/ 
+#### Install Tor from https://dist.torproject.org/win32/
 - The current latest available installation package is https://dist.torproject.org/win32/tor-0.2.4.23-win32.exe
 
 #### Add tor to path
@@ -16,19 +13,21 @@ During the installation make sure you choose the option *Use Git from the Window
 #### Install the latest python 2.x from https://www.python.org/downloads/windows/
 -  python-2.7.9.amd64.msi has been tested
 
-#### Install Visual Studio Express 2013 for Windows
+#### Install Visual Studio Express
+- For Windows 8.1 and above you'll need to install Visual Studio Express 2013 for Windows
+- For Windows 8.0 and below you'll need to install Visual Studio Express 2013 for Windows Desktop
 - https://www.visualstudio.com/en-us/products/visual-studio-express-vs.aspx
-*note* The installer will take quite a bit of time to complete
+- **Note** - The installer will take quite a bit of time to complete and requires signup
 
-#### Install Microsoft Visual C++ 2008 Redistributable Package (x86)      
+#### Install Microsoft Visual C++ 2008 Redistributable Package (x86)
 - http://www.microsoft.com/en-us/download/details.aspx?id=29
 
-#### Install Microsoft Visual C++ 2008 Redistributable Package (x64) 
+#### Install Microsoft Visual C++ 2008 Redistributable Package (x64)
 - http://www.microsoft.com/en-us/download/details.aspx?id=15336
 
-#### Install OpenSSL 32 and 64 bit versions taking all the default settings:
-- http://slproweb.com/download/Win32OpenSSL-1_0_1m.exe
-- http://slproweb.com/download/Win64OpenSSL-1_0_1m.exe
+#### Install OpenSSL
+You'll need to use the non light installers, and both 32 and 64 bit installs are required.
+- http://slproweb.com/products/Win32OpenSSL.html
 
 #### Install Node.js and dependencies
 - https://nodejs.org/
@@ -40,7 +39,6 @@ npm install node-gyp -g
 #### Install Noxious
 Now that you have all the dependencies we can install noxious
 From a directory of your choice run the following commands:
-
 ````
 git clone https://github.com/mattcollier/noxious.git
 cd noxious
