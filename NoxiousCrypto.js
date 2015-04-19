@@ -37,7 +37,6 @@ class NoxiousCrypto{
         // of time on the main JS thread
         var state = rsa.createKeyPairGenerationState(this.newKeySize, 0x10001);
         var step = (function() {
-          // run for 100 ms
           if(!rsa.stepKeyPairGenerationState(state, 1000)) {
             console.log('[NoxiousCrypto] Generating Key...');
             process.nextTick(step);
