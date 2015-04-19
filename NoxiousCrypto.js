@@ -102,7 +102,7 @@ class NoxiousCrypto{
     return Buffer.concat(decryptedBuffers).toString();
   }
   signString(data) {
-    var md = forge.md.sha1.create();
+    var md = forge.md.sha256.create();
     md.update(data, 'utf8');
     var pss = forge.pss.create({
       md: forge.md.sha256.create(),
