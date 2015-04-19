@@ -73,11 +73,21 @@ class NoxiousCrypto{
       //copies next chunk of data to the temporary buffer
       buffer.copy(tempBuffer, 0, bytesEncrypted, bytesEncrypted + amountToCopy);
       //encrypts and stores current chunk
-      var encryptedBuffer = this.myPubKey.encrypt(tempBuffer, 'RSA-OAEP');
+      var encryptedBuffer = new Buffer(this.myPubKey.encrypt(tempBuffer, 'RSA-OAEP'), 'binary');
+      console.log("encryptedBuffer is a Buffer : ", Buffer.isBuffer(encryptedBuffer));
       encryptedBuffersList.push(encryptedBuffer);
       bytesEncrypted += amountToCopy;
     }
-    return Buffer.concat(encryptedBuffersList);
+    //let something = new Buffer(encryptedBuffersList.length * keySizeBytes);
+    //let bufferCount = 0;
+    return Buffer.concat(encryptedBuffersList).toString('base64');
+    //console.log("BufferListSize :", encryptedBuffersList.length);
+    //for(let buf of encryptedBuffersList) {
+    //  console.log("Length of THIS buffer : ", buf.length);
+    //  buf.copy(something, bufferCount * keySizeBytes);
+    //  bufferCount++;
+    //}
+    //console.log('Length of Something: ', something.length);
   }
   encrypt(plainText) {
     var keySizeBytes = Math.ceil(this.keySize/8);
@@ -102,13 +112,17 @@ class NoxiousCrypto{
     //encryptedBuffersList.push(new Buffer('Second Thing'));
     //console.log('[ebl] ', Buffer.concat(encryptedBuffersList).toString('base64'));
     // console.log('decrypted: ', decrypt(Buffer.concat(encryptedBuffersList).toString('base64')));
+    // Works for binary
+    // return Buffer.concat(encryptedBuffersList);
     return Buffer.concat(encryptedBuffersList).toString('base64');
     //return new Buffer(this.myPubKey.encrypt(plainText, 'RSA-OAEP'), binary).toString('base64');
   }
   binDecrypt(cipherText) {
     console.log('****** cipherText length: ', cipherText.length);
     var keySizeBytes = Math.ceil(this.keySize/8);
-    var encryptedBuffer = new Buffer(binaryString, 'binary');
+    // works for binary
+    //var encryptedBuffer = new Buffer(cipherText, 'binary');
+    var encryptedBuffer = new Buffer(cipherText, 'base64');
     console.log('****** ebuffer length: ', encryptedBuffer.length);
     var decryptedBuffers = [];
     //if the plain text was encrypted with a key of size N, the encrypted
@@ -122,9 +136,9 @@ class NoxiousCrypto{
       var tempBuffer = new Buffer(keySizeBytes);
       encryptedBuffer.copy(tempBuffer, 0, i*keySizeBytes, (i+1)*keySizeBytes);
       //decrypts and stores current chunk
-      var decryptedBuffer = this.myPrivKey.decrypt(tempBuffer, 'RSA-OAEP');
+      var decryptedBuffer = this.myPrivKey.decrypt(tempBuffer.toString('binary'), 'RSA-OAEP');
       // console.log('#### decrypted chunk: ', decryptpedBuffer.toString());
-      decryptedBuffers.push(decryptedBuffer);
+      decryptedBuffers.push(new Buffer(decryptedBuffer, 'utf8'));
     }
     //concatenates all decrypted buffers and returns the corresponding String
     return Buffer.concat(decryptedBuffers).toString();
