@@ -1,5 +1,5 @@
-# noxious
-noxious is designed to be a secure, decentralized, and anonymous instant messaging platform.
+# Noxious
+Noxious is designed to be a secure, decentralized, and anonymous instant messaging platform.
 ##Anonymous
 All communications are conducted between [tor hidden services](https://www.torproject.org/docs/hidden-services.html.en) and never leave the tor network.
 ##Secure
@@ -9,7 +9,7 @@ JavaScript, it does access the CSPRNG (Cryptographically Secure Random Number
 Generator) provided by the native openssl library via a call to [node's crypto.randomBytes
 function](https://iojs.org/api/crypto.html#crypto_crypto_randombytes_size_callback).
 ##Platform
-noxious is built on the [Electron Application Framework](https://github.com/atom/electron).
+Noxious is built on the [Electron Application Shell](http://electron.atom.io/).
 ##Screenshot
 ![noxious screenshot](https://github.com/mattcollier/noxious/blob/screenshots/screenshot1.png)
 ###Operating System Support
@@ -32,15 +32,16 @@ cd noxious
 npm install
 ```
 The 'npm install' command will download all the required dependencies.
-#####Run noxious
+#####Run Noxious
 From inside the noxious folder do:
 ```
 npm start
 ```
 You should see the GUI appear.  Within 30 seconds or so, you should see your 'Chat ID'
-appear next to the asterisk (*) in the upper left hand corner of the window.  You may now
-provide your ID to another noxious user who can add you as a contact which initiates a 'contact
-request' process which facilitates the exchange of public keys.
+appear next to the asterisk (*) in the upper left hand corner of the window.  
+You may now provide your Chat ID to another Noxious user who can add you as a
+contact which initiates a 'contact request' process which facilitates the
+exchange of public keys.
 ###Support
 Please [submit an issue](https://github.com/mattcollier/noxious/issues).  We can
 also be reached via irc at #noxious on freenode.
