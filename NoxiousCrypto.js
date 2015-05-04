@@ -31,6 +31,17 @@ class NoxiousCrypto{
         this.myPubKey = pki.publicKeyFromPem(this.pubPem);
         this.keySize = this.myPubKey.n.bitLength();
         console.log('[NoxiousCrypto] Existing Key Bits: ', this.keySize);
+        //console.log('PrivateKey:', this.myPrivKey);
+        //console.log('PublicKey:', this.myPubKey);
+        var testPublicKey = rsa.setPublicKey(this.myPrivKey.n, this.myPrivKey.e);
+        //var testPublicPem = pki.publicKeyToPem(testPublicKey);
+        var testPublicPem = this.myPrivKey.toPublicPem();
+        console.log('testPEM:', testPublicPem);
+        if(testPublicPem === this.pubPem) {
+          console.log('YES');
+        } else {
+          console.log('NO');
+        }
       } else {
         // key was not on disk, create a new one
         // generate an RSA key pair in steps that attempt to run for a specified period
