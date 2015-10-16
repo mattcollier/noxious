@@ -22,6 +22,8 @@ var
   BrowserWindow = require('browser-window'),  // Module to create native browser window.
   thsBuilder = require('ths'),
   ths = new thsBuilder(app.getPath('userData')),
+  fork = require('child_process').fork,
+  cryptoWorker = fork('./cryptoWorker.js'),
   NoxiousCrypto = require('./NoxiousCrypto'),
   myCrypto = new NoxiousCrypto({ path: Path.join(app.getPath('userData'), 'PrivateKey.json') }),
   dataTransmitDomain = require('domain').create(),
@@ -309,30 +311,11 @@ function preProcessMessage(msg) {
   return status;
 }
 
-function processMessage(msg) {
-  msgObj = JSON.parse(msg);
-  console.log('[process message] ', msgObj);
-  var content = msgObj.content;
-  switch (content.type) {
-    case 'introduction':
-      var signature = msgObj.signature;
-      var tmpCrypto = new NoxiousCrypto({ 'pubPem': content.pubPem });
-      if (tmpCrypto.signatureVerified(jsStringify(content), signature)) {
-        console.log('[process message] Introduction is properly signed.');
-        // TODO enhance from address checking, for now, not null or undefined, and not myAddress
-        if (content.to==myAddress && content.from!==undefined && content.from && content.from!==myAddress) {
-          // content.to and content.from are part of the signed content.
-          console.log('[process message] Introduction is properly addressed.');
-          registerContactRequest(content);
-        }
-      } else {
-        console.log('[process message] Introduction is NOT properly signed.  Disregarding.');
-      }
-      break;
-    case 'encryptedData':
-      console.log('Encrypted Data: ', content.data);
-      var decObj = JSON.parse(myCrypto.decrypt(content.data));
-      console.log('Decrypted Data: ', decObj);
+cryptoWorker.on('message', function(msgObj) {
+  switch (msgObj.type) {
+    case 'decryptedData':
+      var decObj = msgObj.data;
+      // console.log('Decrypted Data: ', decObj);
       var content = decObj.content;
       var signature = decObj.signature;
       // TODO additional integrity checks?
@@ -357,6 +340,34 @@ function processMessage(msg) {
           }
         }
       }
+      break;
+  }
+});
+
+function processMessage(msg) {
+  var msgObj = JSON.parse(msg);
+  var content = msgObj.content;
+  switch (content.type) {
+    case 'introduction':
+      var signature = msgObj.signature;
+      var tmpCrypto = new NoxiousCrypto({ 'pubPem': content.pubPem });
+      if (tmpCrypto.signatureVerified(jsStringify(content), signature)) {
+        console.log('[process message] Introduction is properly signed.');
+        // TODO enhance from address checking, for now, not null or undefined, and not myAddress
+        if (content.to==myAddress && content.from!==undefined && content.from && content.from!==myAddress) {
+          // content.to and content.from are part of the signed content.
+          console.log('[process message] Introduction is properly addressed.');
+          registerContactRequest(content);
+        }
+      } else {
+        console.log('[process message] Introduction is NOT properly signed.  Disregarding.');
+      }
+      break;
+    case 'encryptedData':
+      var workerMsg = {};
+      workerMsg.type = 'decrypt';
+      workerMsg.data = content.data;
+      cryptoWorker.send(workerMsg);
       break;
   }
 }
@@ -411,6 +422,10 @@ ths.on('bootstrap', function(state) {
 app.on('ready', function() {
   // handles communication between browser and io.js (webpage)
   var ipc = require('ipc');
+  var workerMsg = {};
+  workerMsg.type = 'init';
+  workerMsg.pathToKey = { path: Path.join(app.getPath('userData'), 'PrivateKey.json') };
+  cryptoWorker.send(workerMsg);
 
   // Create the browser window.
   mainWindow = new BrowserWindow({width: 900, height: 600});
@@ -590,5 +605,6 @@ app.on('before-quit', function(e) {
       app.quit();
     });
   }
+  cryptoWorker.kill();
   console.log('I\'m quitting.');
 });

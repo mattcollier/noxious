@@ -16,7 +16,6 @@ class NoxiousCrypto{
     this.newKeySize=3072;
 
     // accepts either dir, filename or public key
-    console.log('[NoxiousCrypto] obj: ', obj);
     if(obj['pubPem']) {
       // object has public Key
       this.pubPem = obj.pubPem;
@@ -38,58 +37,84 @@ class NoxiousCrypto{
         // of time on the main JS thread
         var state = rsa.createKeyPairGenerationState(this.newKeySize, 0x10001);
         var step = (function() {
-          // run for 100 ms
           if(!rsa.stepKeyPairGenerationState(state, 1000)) {
             console.log('[NoxiousCrypto] Generating Key...');
             process.nextTick(step);
           }
           else {
-            // done, turn off progress indicator, use state.keys
             console.log('[NoxiousCrypto] Key Generation Complete.');
             this.pubPem = pki.publicKeyToPem(state.keys.publicKey);
             keyData.set('privPem', pki.privateKeyToPem(state.keys.privateKey));
             keyData.set('pubPem', this.pubPem);
             this.myPrivKey = state.keys.privateKey;
-            // make a public key, to be used for encryption
             this.myPubKey = state.keys.publicKey;
             this.keySize = this.newKeySize;
           }
         }).bind(this);
-        // turn on progress indicator, schedule generation to run
         process.nextTick(step);
       }
     }
   }
   encrypt(plainText) {
-    return this.myPubKey.encrypt(plainText, 'RSA-OAEP');
+    var keySizeBytes = Math.ceil(this.keySize/8);
+    var buffer = new Buffer(plainText, 'utf8');
+    var maxBufferSize = keySizeBytes - 42; //according to ursa documentation
+    var bytesEncrypted = 0;
+    var encryptedBuffersList = [];
+    //loops through all data buffer encrypting piece by piece
+    while(bytesEncrypted < buffer.length){
+      //calculates next maximun length for temporary buffer and creates it
+      var amountToCopy = Math.min(maxBufferSize, buffer.length - bytesEncrypted);
+      var tempBuffer = new Buffer(amountToCopy);
+      //copies next chunk of data to the temporary buffer
+      buffer.copy(tempBuffer, 0, bytesEncrypted, bytesEncrypted + amountToCopy);
+      //encrypts and stores current chunk
+      var encryptedBuffer = new Buffer(this.myPubKey.encrypt(tempBuffer, 'RSA-OAEP'), 'binary');
+      encryptedBuffersList.push(encryptedBuffer);
+      bytesEncrypted += amountToCopy;
+    }
+    return Buffer.concat(encryptedBuffersList).toString('base64');
   }
   decrypt(cipherText) {
-    return this.myPrivKey.decrypt(cipherText, 'RSA-OAEP');
+    var keySizeBytes = Math.ceil(this.keySize/8);
+    var encryptedBuffer = new Buffer(cipherText, 'base64');
+    var decryptedBuffers = [];
+    //if the plain text was encrypted with a key of size N, the encrypted
+    //result is a string formed by the concatenation of strings of N bytes long,
+    //so we can find out how many substrings there are by diving the final result
+    //size per N
+    var totalBuffers = encryptedBuffer.length / keySizeBytes;
+    //decrypts each buffer and stores result buffer in an array
+    for(var i = 0 ; i < totalBuffers; i++){
+      //copies next buffer chunk to be decrypted in a temp buffer
+      var tempBuffer = new Buffer(keySizeBytes);
+      encryptedBuffer.copy(tempBuffer, 0, i*keySizeBytes, (i+1)*keySizeBytes);
+      //decrypts and stores current chunk
+      var decryptedBuffer = this.myPrivKey.decrypt(tempBuffer.toString('binary'), 'RSA-OAEP');
+      decryptedBuffers.push(new Buffer(decryptedBuffer, 'utf8'));
+    }
+    //concatenates all decrypted buffers and returns the corresponding String
+    return Buffer.concat(decryptedBuffers).toString();
   }
   signString(data) {
-    //let signature = this.myPrivKey.hashAndSign('sha256' , new Buffer(data) , undefined, 'base64', true);
-    var md = forge.md.sha1.create();
+    var md = forge.md.sha256.create();
     md.update(data, 'utf8');
     var pss = forge.pss.create({
-      md: forge.md.sha1.create(),
-      mgf: forge.mgf.mgf1.create(forge.md.sha1.create()),
+      md: forge.md.sha256.create(),
+      mgf: forge.mgf.mgf1.create(forge.md.sha256.create()),
       saltLength: 20
-      // optionally pass 'prng' with a custom PRNG implementation
-      // optionalls pass 'salt' with a forge.util.ByteBuffer w/custom salt
     });
-    return new Buffer(this.myPrivKey.sign(md, pss)).toString('base64');
+    return new Buffer(this.myPrivKey.sign(md, pss), 'binary').toString('base64');
   }
   signatureVerified(data, signature) {
-    // verify RSASSA-PSS signature
     let pss = forge.pss.create({
-      md: forge.md.sha1.create(),
-      mgf: forge.mgf.mgf1.create(forge.md.sha1.create()),
+      md: forge.md.sha256.create(),
+      mgf: forge.mgf.mgf1.create(forge.md.sha256.create()),
       saltLength: 20
-      // optionally pass 'prng' with a custom PRNG implementation
     });
-    var md = forge.md.sha1.create();
+    var md = forge.md.sha256.create();
     md.update(data, 'utf8');
-    return this.myPubKey.verify(md.digest().getBytes(), new Buffer(signature).toString('binary'), pss);
+    return this.myPubKey.verify(md.digest().getBytes(), new Buffer(signature, 'base64').toString('binary'), pss);
   }
 }
 
