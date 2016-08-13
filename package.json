@@ -1,6 +1,6 @@
 {
   "name": "noxious",
-  "version": "1.0.0",
+  "version": "1.0.1-0",
   "description": "secure anonymous instant messaging client built on atom-shell",
   "main": "nox-main.js",
   "scripts": {
