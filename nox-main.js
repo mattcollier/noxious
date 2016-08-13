@@ -1,7 +1,11 @@
+/* jshint node: true, esversion: 6 */
+
 "use strict";
 
+const {app} = require('electron'); // Module to control application life.
+const {BrowserWindow} = require('electron');  // Module to create native browser window.
+
 var
-  app = require('app'),  // Module to control application life.
   Path = require('path'),
   http = require('http'),
   DataFile = require('./DataFile'),
@@ -13,7 +17,6 @@ var
   jsStringify = require('canonical-json'),
   contactList = new DataFile(Path.join(app.getPath('userData'), 'Contacts.json')),
   contactRequestList = new DataFile(Path.join(app.getPath('userData'), 'ContactRequests.json')),
-  BrowserWindow = require('browser-window'),  // Module to create native browser window.
   thsBuilder = require('ths'),
   ths = new thsBuilder(app.getPath('userData')),
   fork = require('child_process').fork,
@@ -23,7 +26,6 @@ var
   dataTransmitDomain = require('domain').create(),
   contactRequestDomain = require('domain').create(),
   myAddress;
-
 
 function notifyCommError(error) {
   let msgObj = {};
@@ -36,6 +38,7 @@ function notifyCommError(error) {
     case 'ETTLEXPIRED':
       msgObj.content = { type: 'communication',
         message: 'There seems to be trouble with your Internet connection.  Try again later.'};
+      break;
     default:
       msgObj.content = { type: 'communication',
         message: 'A communication error occurred, see the console log for more information.'};
@@ -44,15 +47,15 @@ function notifyCommError(error) {
   notifyGUI(msgObj);
 }
 
-dataTransmitDomain.on('error', function(err){
+dataTransmitDomain.on('error', function(err) {
   console.log(err);
   notifyCommError(err.code);
 });
 
-contactRequestDomain.on('error', function(err){
+contactRequestDomain.on('error', function(err) {
   console.log(err);
   notifyCommError(err.code);
-  updateRequestStatus(err.domainEmitter['_dstaddr'], 'failed');
+  updateRequestStatus(err.domainEmitter._dstaddr, 'failed');
 });
 
 function notifyGUI(msg) {
@@ -61,9 +64,9 @@ function notifyGUI(msg) {
   }
 }
 
-function isValidTorHiddenServiceName (name) {
+function isValidTorHiddenServiceName(name) {
   let toReturn = false;
-  if (name.search(/^[a-zA-Z2-7]{16}\.onion$/) != -1) {
+  if(name.search(/^[a-zA-Z2-7]{16}\.onion$/) != -1) {
     // it matched
     toReturn = true;
   }
@@ -71,7 +74,7 @@ function isValidTorHiddenServiceName (name) {
 }
 
 function getContacts(forceReload) {
-  if (contactList.size() > 0 || forceReload) {
+  if(contactList.size() > 0 || forceReload) {
     var msgObj = {};
     msgObj.method = 'contact';
     msgObj.content = { type: 'initContactList', contactList: contactList.getAll() };
@@ -82,7 +85,7 @@ function getContacts(forceReload) {
 function getContactRequests() {
   let msgObj = {};
   msgObj.method = 'contact';
-  if (contactRequestList.size() > 0) {
+  if(contactRequestList.size() > 0) {
     msgObj.content = { type: 'initContactRequestList', contactRequestList: contactRequestList.getAll() };
   } else {
     msgObj.content = { type: 'clearContactRequestList', contactRequestList: {} };
@@ -97,7 +100,7 @@ function updateRequestStatus(contactAddress, status, updateGui) {
   let tmpContact = contactRequestList.get(contactAddress);
   tmpContact.status=status;
   contactRequestList.set(contactAddress, tmpContact);
-  if (updateGui) {
+  if(updateGui) {
     getContactRequests();
   }
 }
@@ -145,8 +148,8 @@ function transmitContactRequest(destAddress) {
           updateRequestStatus(destAddress, 'failed');
           var msgObj = {};
           msgObj.method = 'error';
-          var failedReason = res.body['reason'];
-          switch (failedReason) {
+          var failedReason = res.body.reason;
+          switch(failedReason) {
             case 'EKEYSIZE':
               msgObj.content = { type: 'contact',
                 message: 'The contact request was rejected because your public encryption key is not proper.  Please upgrade your Noxious software.'};
@@ -172,26 +175,26 @@ function transmitContactRequest(destAddress) {
 var mainWindow = null;
 var pageLoaded = false;
 
-var server = http.createServer(function (req, res){
-  if (req.method === 'GET') {
+var server = http.createServer(function(req, res) {
+  if(req.method === 'GET') {
     res.writeHead(200, {'Content-Type': 'text/plain'});
     res.end('Hello world!');
-  } else if (req.method === 'POST') {
-    if (req.url === '/') {
+  } else if(req.method === 'POST') {
+    if(req.url === '/') {
       var reqBody = '';
       req.on('data', function(d) {
         reqBody += d;
-        if (reqBody.length > 1e7) {
+        if(reqBody.length > 1e7) {
           res.writeHead(413, 'Request Entity Too Large', {'Content-Type': 'text/html'});
           res.end('<!doctype html><html><head><title>413</title></head><body>413: Request Entity Too Large</body></html>');
         }
       });
       req.on('end', function() {
-        console.log('[HTTP Server] ', reqBody );
+        console.log('[HTTP Server] ', reqBody);
         let status = preProcessMessage(reqBody);
-        if (status.code == 200) {
+        if(status.code == 200) {
           res.writeHead(200, {'Content-Type': 'application/json'});
-          res.end(JSON.stringify( { status: 'OK' }));
+          res.end(JSON.stringify({ status: 'OK' }));
           processMessage(reqBody);
         } else {
           res.writeHead(status.code, {'Content-Type': 'application/json'});
@@ -226,7 +229,7 @@ function registerContactRequest(req) {
     msgObj.method = 'contact';
     msgObj.content = { type: 'contactRequest', from: req.from, direction: 'incoming' };
     notifyGUI(msgObj);
-  } else if (contactRequestList.has(req.from) && contactRequestList.get(req.from).direction == 'outgoing') {
+  } else if(contactRequestList.has(req.from) && contactRequestList.get(req.from).direction == 'outgoing') {
     // this person accepted a contact request
     contactList.set(req.from, { pubPem: tmpObj.pubPem, contactAddress: tmpObj.contactAddress });
     contactRequestList.delete(req.from);
@@ -245,19 +248,19 @@ function preProcessMessage(msg) {
   var msgObj = JSON.parse(msg);
   console.log('[preProcessMessage] Start');
   // TODO this function should verify message integrity
-  if (msgObj.protocol === '1.0') {
-    if (msgObj.content !== undefined) {
+  if(msgObj.protocol === '1.0') {
+    if(msgObj.content !== undefined) {
       var content = msgObj.content;
-      if (content.type !== undefined) {
-        switch (content.type) {
+      if(content.type !== undefined) {
+        switch(content.type) {
           case 'introduction':
-            if (content.from !== undefined && content.from && isValidTorHiddenServiceName(content.from)) {
+            if(content.from !== undefined && content.from && isValidTorHiddenServiceName(content.from)) {
               if(!contactList.has(content.from) && !contactRequestList.has(content.from)) {
                 // we don't know this person already, intro is OK
                 status.code = 200;
-              } else if (contactRequestList.has(content.from) &&
-                contactRequestList.get(content.from)['direction'] == 'outgoing' &&
-                contactRequestList.get(content.from)['status'] == 'delivered') {
+              } else if(contactRequestList.has(content.from) &&
+                contactRequestList.get(content.from).direction == 'outgoing' &&
+                contactRequestList.get(content.from).status == 'delivered') {
                 // we're expecting to hear back from this person, intro is OK
                 status.code = 200;
               } else {
@@ -265,14 +268,14 @@ function preProcessMessage(msg) {
                 status.code = 409;
               }
             }
-            if (status.code == 200) {
+            if(status.code === 200) {
               // so far so good, but now check the pubkey, reset status code
               status.code = 403;
               var minKeySize = 3072;
               var tmpCrypto = new NoxiousCrypto({ 'pubPem': content.pubPem });
               var keySize = tmpCrypto.keySize;
               console.log('[preprocessing message] The key size is ', keySize, 'bits.');
-              if (keySize < minKeySize) {
+              if(keySize < minKeySize) {
                 console.log('[preprocessing message] The key must be at least ', minKeySize, ' bits');
                 status.code = 409;
                 status.reason = 'EKEYSIZE';
@@ -283,7 +286,7 @@ function preProcessMessage(msg) {
             }
             break;
           case 'encryptedData':
-            if (content.clearFrom !== undefined && content.clearFrom && isValidTorHiddenServiceName(content.clearFrom)) {
+            if(content.clearFrom !== undefined && content.clearFrom && isValidTorHiddenServiceName(content.clearFrom)) {
               if(contactList.has(content.clearFrom)) {
                 // this is from an existing contact, it's OK
                 status.code = 200;
@@ -306,25 +309,25 @@ function preProcessMessage(msg) {
 }
 
 cryptoWorker.on('message', function(msgObj) {
-  switch (msgObj.type) {
+  switch(msgObj.type) {
     case 'decryptedData':
       var decObj = msgObj.data;
       // console.log('Decrypted Data: ', decObj);
       var content = decObj.content;
       var signature = decObj.signature;
       // TODO additional integrity checks?
-      if (content.to && content.to == myAddress && content.from && isValidTorHiddenServiceName(content.from) && content.type && content.msgText) {
-        if (contactList.has(content.from)) {
-          switch (content.type) {
+      if(content.to && content.to == myAddress && content.from && isValidTorHiddenServiceName(content.from) && content.type && content.msgText) {
+        if(contactList.has(content.from)) {
+          switch(content.type) {
             case 'message':
               var tmpCrypto = new NoxiousCrypto({'pubPem': contactList.get(content.from).pubPem});
-              if (tmpCrypto.signatureVerified(jsStringify(content), signature)) {
+              if(tmpCrypto.signatureVerified(jsStringify(content), signature)) {
                 console.log('[process message] Message is properly signed.');
-                if (content.to==myAddress && content.from!==undefined && content.from && content.from!==myAddress) {
+                if(content.to == myAddress && content.from !== undefined && content.from && content.from !== myAddress) {
                   console.log('[process message] Message is properly addressed.');
                   var msgObj = {};
                   msgObj.method = 'message';
-                  msgObj.content = { type:'message', from: content.from, msgText: content.msgText };
+                  msgObj.content = { type: 'message', from: content.from, msgText: content.msgText };
                   notifyGUI(msgObj);
                 }
               } else {
@@ -341,14 +344,14 @@ cryptoWorker.on('message', function(msgObj) {
 function processMessage(msg) {
   var msgObj = JSON.parse(msg);
   var content = msgObj.content;
-  switch (content.type) {
+  switch(content.type) {
     case 'introduction':
       var signature = msgObj.signature;
       var tmpCrypto = new NoxiousCrypto({ 'pubPem': content.pubPem });
-      if (tmpCrypto.signatureVerified(jsStringify(content), signature)) {
+      if(tmpCrypto.signatureVerified(jsStringify(content), signature)) {
         console.log('[process message] Introduction is properly signed.');
         // TODO enhance from address checking, for now, not null or undefined, and not myAddress
-        if (content.to==myAddress && content.from!==undefined && content.from && content.from!==myAddress) {
+        if(content.to == myAddress && content.from !== undefined && content.from && content.from !== myAddress) {
           // content.to and content.from are part of the signed content.
           console.log('[process message] Introduction is properly addressed.');
           registerContactRequest(content);
@@ -372,11 +375,11 @@ function startHiddenService() {
   console.log('Service List: %j',serviceList);
 
   function noxiousExists(element) {
-    return element.name=='noxious';
+    return element.name === 'noxious';
   }
 
   var noxiousProperties = serviceList.filter(noxiousExists);
-  if (noxiousProperties==0) {
+  if(noxiousProperties === 0) {
     // does not exist, create it
     console.log('Creating new noxious service');
     ths.createHiddenService('noxious','1111');
@@ -384,20 +387,19 @@ function startHiddenService() {
     // Why this?  https://github.com/Mowje/node-ths/issues/5
     var myDelegate = function() {
       ths.signalReload();
-    }
+    };
     var myVar = setTimeout(myDelegate, 250);
   }
   // TODO does not work propery on initial startup: https://github.com/Mowje/node-ths/issues/3
   ths.getOnionAddress('noxious', function(err, onionAddress) {
     if(err) {
       console.error('[getOnionAddress] Error while reading hostname file: ' + err);
-    }
-    else {
+    } else {
       console.log('[getOnionAddress] Onion Address is: ', onionAddress);
       myAddress = onionAddress;
       var msgObj = {};
       msgObj.method = 'status';
-      msgObj.content = { type:'onionAddress', content: myAddress };
+      msgObj.content = { type: 'onionAddress', content: myAddress };
       notifyGUI(msgObj);
     }
   });
@@ -407,7 +409,7 @@ function startHiddenService() {
 ths.on('bootstrap', function(state) {
   var msgObj = {};
   msgObj.method = 'status';
-  msgObj.content = { type:'bootstrap', content: state };
+  msgObj.content = { type: 'bootstrap', content: state };
   notifyGUI(msgObj);
 });
 
@@ -415,7 +417,8 @@ ths.on('bootstrap', function(state) {
 // initialization and ready for creating browser windows.
 app.on('ready', function() {
   // handles communication between browser and io.js (webpage)
-  var ipc = require('ipc');
+  const {ipcMain} = require('electron');
+  // var ipc = require('ipc');
   var workerMsg = {};
   workerMsg.type = 'init';
   workerMsg.pathToKey = { path: Path.join(app.getPath('userData'), 'PrivateKey.json') };
@@ -423,10 +426,10 @@ app.on('ready', function() {
 
   // Create the browser window.
   mainWindow = new BrowserWindow({width: 900, height: 600});
-//  mainWindow = new BrowserWindow({width: 900, height: 600, 'web-preferences': {'overlay-scrollbars': true}});
-//  mainWindow.openDevTools();
+  //  mainWindow = new BrowserWindow({width: 900, height: 600, 'web-preferences': {'overlay-scrollbars': true}});
+  //  mainWindow.openDevTools();
 
-  ths.start(false, function () {
+  ths.start(false, function() {
     console.log("tor Started!");
     if(!mainWindow.webContents.isLoading()) {
       startHiddenService();
@@ -434,16 +437,16 @@ app.on('ready', function() {
   });
 
   // and load the index.html of the app.
-  mainWindow.loadUrl('file://' + __dirname + '/index.html');
+  mainWindow.loadURL('file://' + __dirname + '/index.html');
   mainWindow.webContents.on('did-finish-load', function() {
     console.log('[webContents] Finished loading.');
     getContacts();
     getContactRequests();
   });
 
-  ipc.on('message', function(event, content) {
+  ipcMain.on('message', function(event, content) {
     console.log('[message event] ', content);
-    switch (content.type) {
+    switch(content.type) {
       case 'sendEncrypted':
         var encObj = buildEncryptedMessage(content.destAddress, content.msgText);
         dataTransmitDomain.run(function() {
@@ -467,7 +470,7 @@ app.on('ready', function() {
                 notifyGUI(msgObj);
                 break;
               case 409:
-                var failedReason = res.body['reason'];
+                var failedReason = res.body.reason;
                 switch (failedReason) {
                   case 'EPROTOCOLVERSION':
                     msgObj.method = 'error';
@@ -487,7 +490,7 @@ app.on('ready', function() {
     }
   });
 
-  ipc.on('contact', function(event, content) {
+  ipcMain.on('contact', function(event, content) {
     console.log('[contact event] ', content);
 
     switch (content.type) {
@@ -508,7 +511,7 @@ app.on('ready', function() {
               updateRequestStatus(content.contactAddress, 'failed');
               var msgObj = {};
               msgObj.method = 'error';
-              var failedReason = res.body['reason'];
+              var failedReason = res.body.reason;
               switch (failedReason) {
                 case 'EKEYSIZE':
                   msgObj.content = { type: 'contact',

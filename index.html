@@ -20,7 +20,7 @@
       var notifications = {};
       var contactDisplayNames = {};
 
-      var ipc = require('ipc');
+      const {ipcRenderer} = require('electron');
 
       function isValidTorHiddenServiceName (name) {
         var toReturn = false;
@@ -32,18 +32,18 @@
       }
 
       function notifyAtom(msg) {
-        ipc.send(msg.method, msg.content);
+        ipcRenderer.send(msg.method, msg.content);
       }
 
       // tor Hidden Service Address
       // .onion is removed from the address to avoid css issues
       var torAddress = {fullAddress: '', get address() {return this.fullAddress.split('.')[0];}, nickName: ''};
 
-      ipc.on('error', function(msg) {
+      ipcRenderer.on('error', function(e, msg) {
         alert(msg.message);
       });
 
-      ipc.on('status', function(msg) {
+      ipcRenderer.on('status', function(e, msg) {
         switch (msg.type) {
           case 'onionAddress':
             var chatId = Object.create(torAddress);
@@ -109,7 +109,7 @@
         return reqCode;
       }
 
-      ipc.on('message', function(msg){
+      ipcRenderer.on('message', function(e, msg){
         switch (msg.type) {
           case 'message':
             var contactAddress = Object.create(torAddress);
@@ -147,7 +147,7 @@
         }
       });
 
-      ipc.on('contact', function(msg) {
+      ipcRenderer.on('contact', function(e, msg) {
         switch (msg.type) {
           case 'contactRequest':
             var contactRequest = Object.create(torAddress);
@@ -465,7 +465,7 @@
           // remove nickname
           $(textInput).closest('span.contactAddress').html(realAddress);
           updateDisplayName(realAddress, realAddress);
-          delete contactDisplayNames[currentValue];           
+          delete contactDisplayNames[currentValue];
           var msgObj = {};
           msgObj.method = 'contact';
           msgObj.content = {type: 'delNickName', contactAddress: realAddress+'.onion'};

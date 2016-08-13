@@ -15,15 +15,10 @@ Noxious is built on the [Electron Application Shell](http://electron.atom.io/).
 ###Operating System Support
 The current version has been tested on 32bit and 64bit version of Debian Linux,
 OSX 64bit
-#####Installation Instructions
-######io.js
-[Get io.js here.](https://iojs.org/en/index.html), and you can install it based on
-[these instructions](http://jonathanmh.com/installing-io-js-ubuntu-digital-ocean-droplet/). npm, node package manager will be included with the other io.js binaries.
-######npm
-Once you have a working npm installation, **as root**, installing the following modules globally with the following command:
-```
-npm install electron-prebuilt -g
-```
+##### Installation Instructions
+###### Node.js
+[Get Node.js here.](https://nodejs.org).  npm, node package manager will be included with the other Node.js binaries.
+
 ######Clone and Build
 Next, as a **regular user**, clone this repository into the folder of your choice:
 ```
@@ -48,6 +43,6 @@ also be reached via irc at #noxious on freenode.
 ##Noxious Chat Bot
 The [Noxious Chat Bot](https://github.com/mattcollier/noxiousChatBot) is
 available for testing.  The bot is console based and utilizes native openssl
-libraries for crypto.  Successful communitcation between the Noxious Client and
+libraries for crypto.  Successful communication between the Noxious Client and
 the Noxious Chat Bot demonstrates that the JavaScript forge module utilized
 in the Noxious client is openssl compatible.
