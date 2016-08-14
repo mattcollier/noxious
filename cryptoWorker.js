@@ -1,7 +1,5 @@
 "use strict";
 
-//var
-//  NoxiousCrypto = require('./NoxiousCrypto');
 var
   myCrypto = null,
   initialized = false,

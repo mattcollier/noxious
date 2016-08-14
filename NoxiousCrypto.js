@@ -58,18 +58,18 @@ class NoxiousCrypto {
   encrypt(plainText) {
     var keySizeBytes = Math.ceil(this.keySize / 8);
     var buffer = new Buffer(plainText, 'utf8');
-    var maxBufferSize = keySizeBytes - 42; //according to ursa documentation
+    var maxBufferSize = keySizeBytes - 42; // according to ursa documentation
     var bytesEncrypted = 0;
     var encryptedBuffersList = [];
-    //loops through all data buffer encrypting piece by piece
+    // loops through all data buffer encrypting piece by piece
     while(bytesEncrypted < buffer.length) {
-      //calculates next maximun length for temporary buffer and creates it
+      // calculates next maximun length for temporary buffer and creates it
       var amountToCopy =
         Math.min(maxBufferSize, buffer.length - bytesEncrypted);
       var tempBuffer = new Buffer(amountToCopy);
-      //copies next chunk of data to the temporary buffer
+      // copies next chunk of data to the temporary buffer
       buffer.copy(tempBuffer, 0, bytesEncrypted, bytesEncrypted + amountToCopy);
-      //encrypts and stores current chunk
+      // encrypts and stores current chunk
       var encryptedBuffer =
         new Buffer(this.myPubKey.encrypt(tempBuffer, 'RSA-OAEP'), 'binary');
       encryptedBuffersList.push(encryptedBuffer);
@@ -86,18 +86,18 @@ class NoxiousCrypto {
     // long, so we can find out how many substrings there are by diving the
     // final result size per N
     var totalBuffers = encryptedBuffer.length / keySizeBytes;
-    //decrypts each buffer and stores result buffer in an array
+    // decrypts each buffer and stores result buffer in an array
     for(var i = 0 ; i < totalBuffers; i++) {
-      //copies next buffer chunk to be decrypted in a temp buffer
+      // copies next buffer chunk to be decrypted in a temp buffer
       var tempBuffer = new Buffer(keySizeBytes);
       encryptedBuffer.copy(
         tempBuffer, 0, i * keySizeBytes, (i + 1) * keySizeBytes);
-      //decrypts and stores current chunk
+      // decrypts and stores current chunk
       var decryptedBuffer =
         this.myPrivKey.decrypt(tempBuffer.toString('binary'), 'RSA-OAEP');
       decryptedBuffers.push(new Buffer(decryptedBuffer, 'utf8'));
     }
-    //concatenates all decrypted buffers and returns the corresponding String
+    // concatenates all decrypted buffers and returns the corresponding String
     return Buffer.concat(decryptedBuffers).toString();
   }
   signString(data) {

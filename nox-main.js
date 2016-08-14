@@ -44,12 +44,14 @@ function notifyCommError(error) {
         'Try again later.'};
       break;
     case 'ETTLEXPIRED':
-      msgObj.content = { type: 'communication',
+      msgObj.content = {
+        type: 'communication',
         message: 'There seems to be trouble with your Internet connection. ' +
         'Try again later.'};
       break;
     default:
-      msgObj.content = { type: 'communication',
+      msgObj.content = {
+        type: 'communication',
         message: 'A communication error occurred, see the console log for ' +
         'more information.'};
       break;
@@ -124,7 +126,7 @@ function updateRequestStatus(contactAddress, status, updateGui) {
 
 function buildEncryptedMessage(destAddress, msgText) {
   let tmpCrypto =
-    new NoxiousCrypto({ 'pubPem': contactList.get(destAddress).pubPem });
+    new NoxiousCrypto({'pubPem': contactList.get(destAddress).pubPem});
   let msgContent = {};
   msgContent.type = 'message';
   msgContent.from = myAddress;
@@ -137,8 +139,9 @@ function buildEncryptedMessage(destAddress, msgText) {
   // encrypt using recipients public key
   let encryptedData = tmpCrypto.encrypt(JSON.stringify(msgObj));
   let encObj = {};
-  encObj.content =
-    { type: 'encryptedData', clearFrom: myAddress, data: encryptedData};
+  encObj.content = {
+    type: 'encryptedData', clearFrom: myAddress, data: encryptedData
+  };
   encObj.protocol = '1.0';
   return encObj;
 }
@@ -171,19 +174,22 @@ function transmitContactRequest(destAddress) {
             var failedReason = res.body.reason;
             switch(failedReason) {
               case 'EKEYSIZE':
-                msgObj.content = { type: 'contact',
+                msgObj.content = {
+                  type: 'contact',
                   message: 'The contact request was rejected because your ' +
                   'public encryption key is not proper.  Please upgrade your ' +
                   'Noxious software.'};
                 break;
               case 'EPROTOCOLVERSION':
-                msgObj.content = { type: 'contact',
+                msgObj.content = {
+                  type: 'contact',
                   message: 'The contact request was rejected because the ' +
                   'message format is not proper.  Please upgrade your ' +
                   'Noxious software.'};
                 break;
               default:
-                msgObj.content = { type: 'contact',
+                msgObj.content = {
+                  type: 'contact',
                   message: 'The recipient already has your contact ' +
                   'information.  Ask them to delete your contact ' +
                   'information and try again.'};
@@ -222,11 +228,11 @@ var server = http.createServer(function(req, res) {
         let status = preProcessMessage(reqBody);
         if(status.code == 200) {
           res.writeHead(200, {'Content-Type': 'application/json'});
-          res.end(JSON.stringify({ status: 'OK' }));
+          res.end(JSON.stringify({status: 'OK'}));
           processMessage(reqBody);
         } else {
           res.writeHead(status.code, {'Content-Type': 'application/json'});
-          res.end(JSON.stringify({ reason: status.reason }));
+          res.end(JSON.stringify({reason: status.reason}));
         }
       });
     }
@@ -256,8 +262,9 @@ function registerContactRequest(req) {
     contactRequestList.set(req.from, tmpObj);
     let msgObj = {};
     msgObj.method = 'contact';
-    msgObj.content =
-      { type: 'contactRequest', from: req.from, direction: 'incoming' };
+    msgObj.content = {
+      type: 'contactRequest', from: req.from, direction: 'incoming'
+    };
     notifyGUI(msgObj);
   } else if(contactRequestList.has(req.from) &&
     contactRequestList.get(req.from).direction == 'outgoing') {
@@ -308,7 +315,7 @@ function preProcessMessage(msg) {
               // so far so good, but now check the pubkey, reset status code
               status.code = 403;
               var minKeySize = 3072;
-              var tmpCrypto = new NoxiousCrypto({ 'pubPem': content.pubPem });
+              var tmpCrypto = new NoxiousCrypto({'pubPem': content.pubPem});
               var keySize = tmpCrypto.keySize;
               console.log(
                 '[preprocessing message] The key size is ', keySize, 'bits.');
@@ -401,7 +408,7 @@ function processMessage(msg) {
   switch(content.type) {
     case 'introduction':
       var signature = msgObj.signature;
-      var tmpCrypto = new NoxiousCrypto({ 'pubPem': content.pubPem });
+      var tmpCrypto = new NoxiousCrypto({'pubPem': content.pubPem});
       if(tmpCrypto.signatureVerified(jsStringify(content), signature)) {
         console.log('[process message] Introduction is properly signed.');
         // TODO enhance from address checking, for now, not null or undefined,
@@ -458,7 +465,7 @@ function startHiddenService() {
       myAddress = onionAddress;
       var msgObj = {};
       msgObj.method = 'status';
-      msgObj.content = { type: 'onionAddress', content: myAddress };
+      msgObj.content = {type: 'onionAddress', content: myAddress};
       notifyGUI(msgObj);
     }
   });
@@ -468,7 +475,7 @@ function startHiddenService() {
 ths.on('bootstrap', function(state) {
   var msgObj = {};
   msgObj.method = 'status';
-  msgObj.content = { type: 'bootstrap', content: state };
+  msgObj.content = {type: 'bootstrap', content: state};
   notifyGUI(msgObj);
 });
 
@@ -480,8 +487,9 @@ app.on('ready', function() {
   // var ipc = require('ipc');
   var workerMsg = {};
   workerMsg.type = 'init';
-  workerMsg.pathToKey =
-    { path: Path.join(app.getPath('userData'), 'PrivateKey.json') };
+  workerMsg.pathToKey = {
+    path: Path.join(app.getPath('userData'), 'PrivateKey.json')
+  };
   cryptoWorker.send(workerMsg);
 
   // Create the browser window.
@@ -524,7 +532,8 @@ app.on('ready', function() {
                 case 410:
                   // recipient does not have the public key (anymore)
                   msgObj.method = 'error';
-                  msgObj.content = { type: 'message',
+                  msgObj.content = {
+                    type: 'message',
                     message: 'The recipient no longer has you in their ' +
                     'contact list.  Delete the contact, then send a contact ' +
                     'request.'};
@@ -540,7 +549,8 @@ app.on('ready', function() {
                   switch(failedReason) {
                     case 'EPROTOCOLVERSION':
                       msgObj.method = 'error';
-                      msgObj.content = { type: 'message',
+                      msgObj.content = {
+                        type: 'message',
                         message: 'The message was rejected because the ' +
                         'message format is not proper.  Please upgrade your ' +
                         'Noxious software.'};
@@ -591,13 +601,15 @@ app.on('ready', function() {
                 var failedReason = res.body.reason;
                 switch(failedReason) {
                   case 'EKEYSIZE':
-                    msgObj.content = { type: 'contact',
+                    msgObj.content = {
+                      type: 'contact',
                       message: 'The contact request was rejected because ' +
                       'your public encryption key is not proper.  Please ' +
                       'upgrade your Noxious software.'};
                     break;
                   default:
-                    msgObj.content = { type: 'contact',
+                    msgObj.content = {
+                      type: 'contact',
                       message: 'The recipient already has your contact ' +
                       'information.  Ask them to delete your contact ' +
                       'information and try again.'};
@@ -627,13 +639,15 @@ app.on('ready', function() {
           notifyGUI(msgObj);
         } else if(contactList.has(content.contactAddress)) {
           msgObj.method = 'error';
-          msgObj.content = { type: 'contact',
+          msgObj.content = {
+            type: 'contact',
             message: 'You may not send a contact request to an existing ' +
             'contact.  Delete the contact and try again.'};
           notifyGUI(msgObj);
         } else if(contactRequestList.get(content.contactAddress)) {
           msgObj.method = 'error';
-          msgObj.content = { type: 'contact',
+          msgObj.content = {
+            type: 'contact',
             message: 'There is already a pending contact request for this ' +
             'Client ID.  Delete the contact request and try again.'};
           notifyGUI(msgObj);
@@ -683,7 +697,7 @@ app.on('ready', function() {
 app.on('before-quit', function(e) {
   if(ths.isTorRunning()) {
     e.preventDefault();
-    ths.stop(function () {
+    ths.stop(function() {
       console.log("tor has been stopped");
       app.quit();
     });
