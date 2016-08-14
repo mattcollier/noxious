@@ -3,7 +3,7 @@
 var
   fs = require('fs');
 
-class DataFile{
+class DataFile {
   constructor(path, init) {
     this.path = path;
     this.init = init ? init : {};
@@ -16,7 +16,7 @@ class DataFile{
     }
   }
 
-  write(){
+  write() {
     fs.writeFile(this.path, JSON.stringify(this.collection));
   }
   getAll() { return this.collection; }

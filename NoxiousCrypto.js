@@ -6,7 +6,7 @@ var
   rsa = require('node-forge').pki.rsa,
   pki = require('node-forge').pki;
 
-class NoxiousCrypto{
+class NoxiousCrypto {
   constructor(obj) {
     this.myPrivKey = null;
     this.pubPem = null;
@@ -62,7 +62,7 @@ class NoxiousCrypto{
     var bytesEncrypted = 0;
     var encryptedBuffersList = [];
     //loops through all data buffer encrypting piece by piece
-    while(bytesEncrypted < buffer.length){
+    while(bytesEncrypted < buffer.length) {
       //calculates next maximun length for temporary buffer and creates it
       var amountToCopy =
         Math.min(maxBufferSize, buffer.length - bytesEncrypted);
@@ -87,7 +87,7 @@ class NoxiousCrypto{
     // final result size per N
     var totalBuffers = encryptedBuffer.length / keySizeBytes;
     //decrypts each buffer and stores result buffer in an array
-    for(var i = 0 ; i < totalBuffers; i++){
+    for(var i = 0 ; i < totalBuffers; i++) {
       //copies next buffer chunk to be decrypted in a temp buffer
       var tempBuffer = new Buffer(keySizeBytes);
       encryptedBuffer.copy(
