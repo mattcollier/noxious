@@ -10,7 +10,7 @@ class DataFile{
     try {
       fs.accessSync(this.path, fs.R_OK);
       this.collection = JSON.parse(fs.readFileSync(this.path));
-    } catch(error){
+    } catch(error) {
       this.collection = this.init;
       this.write();
     }
@@ -23,14 +23,14 @@ class DataFile{
   get(key) { return this.collection[key]; }
   has(key) {
     let hasKey = true;
-    if (this.collection[key] === undefined) {
+    if(this.collection[key] === undefined) {
       hasKey = false;
     }
     return hasKey;
   }
   set(key,value) { this.collection[key] = value; this.write(); }
   delete(key) { delete this.collection[key]; this.write(); }
-  size() { return Object.keys(this.collection).length }
+  size() { return Object.keys(this.collection).length; }
 }
 
 module.exports = DataFile;

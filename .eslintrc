@@ -1,0 +1,22 @@
+{
+  "env": {
+    "es6": true
+  },
+  "rules": {
+    "comma-dangle": ["error", "never"],
+    "eol-last": "error",
+    "keyword-spacing": ["error", {"overrides": {
+      "catch": {"after": false},
+      "do": {"after": false},
+      "for": {"after": false},
+      "if": {"after": false},
+      "switch": {"after": false},
+      "while": {"after": false}
+      }}],
+    "indent": ["error", 2, {"SwitchCase": 1}],
+    "max-len": ["error", 80],
+    "no-mixed-spaces-and-tabs": "error",
+    "semi": ["error", "always"],
+    "space-infix-ops": "error"
+  }
+}

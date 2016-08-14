@@ -17,8 +17,8 @@ class NoxiousClient {
   }
   transmitObject(destAddress, msg, cb) {
     let postData = JSON.stringify(msg);
-    // localDNS: false is a critical parameter here, this allows lookup of hidden (*.onion) addresses.
-    // proxy here refers to the tor instance
+    // localDNS: false is a critical parameter here, this allows lookup of
+    // hidden (*.onion) addresses.  proxy here refers to the tor instance
 
     let postOptions = {
       host: destAddress,
@@ -30,7 +30,7 @@ class NoxiousClient {
         'Content-Length': Buffer.byteLength(postData)
       },
       agent: new socks.HttpAgent(this.socksConfig)
-    }
+    };
     let postReq = http.request(postOptions, function(res) {
       res.setEncoding('utf8');
       let body = '';

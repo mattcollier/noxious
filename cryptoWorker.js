@@ -8,7 +8,7 @@ var
   NoxiousCrypto = require('./NoxiousCrypto');
 
 process.on('message', function(msgObj) {
-  switch (msgObj.type) {
+  switch(msgObj.type) {
     case 'init':
       myCrypto = new NoxiousCrypto(msgObj.pathToKey);
       initialized = true;

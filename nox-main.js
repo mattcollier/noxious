@@ -2,8 +2,10 @@
 
 "use strict";
 
-const {app} = require('electron'); // Module to control application life.
-const {BrowserWindow} = require('electron');  // Module to create native browser window.
+// Module to control application life.
+const {app} = require('electron');
+// Module to create native browser window.
+const {BrowserWindow} = require('electron');
 
 var
   Path = require('path'),
@@ -13,16 +15,20 @@ var
   NoxiousClient = require('./NoxiousClient'),
   myNoxClient = new NoxiousClient(),
   // cononical json.stringify
-  // This is used to stringify objects in a consistent way prior to hashing/signing
+  // Stringify objects in a consistent way prior to hashing/signing
   jsStringify = require('canonical-json'),
-  contactList = new DataFile(Path.join(app.getPath('userData'), 'Contacts.json')),
-  contactRequestList = new DataFile(Path.join(app.getPath('userData'), 'ContactRequests.json')),
+  contactList =
+    new DataFile(Path.join(app.getPath('userData'), 'Contacts.json')),
+  contactRequestList =
+    new DataFile(Path.join(app.getPath('userData'), 'ContactRequests.json')),
   thsBuilder = require('ths'),
   ths = new thsBuilder(app.getPath('userData')),
   fork = require('child_process').fork,
   cryptoWorker = fork('./cryptoWorker.js'),
   NoxiousCrypto = require('./NoxiousCrypto'),
-  myCrypto = new NoxiousCrypto({ path: Path.join(app.getPath('userData'), 'PrivateKey.json') }),
+  myCrypto = new NoxiousCrypto({
+    path: Path.join(app.getPath('userData'), 'PrivateKey.json')
+  }),
   dataTransmitDomain = require('domain').create(),
   contactRequestDomain = require('domain').create(),
   myAddress;
@@ -32,16 +38,20 @@ function notifyCommError(error) {
   msgObj.method = 'error';
   switch(error) {
     case 'EHOSTUNREACH':
-      msgObj.content = { type: 'communication',
-        message: 'The recipient does not appear to be online at this time.  Try again later.'};
+      msgObj.content = {
+        type: 'communication',
+        message: 'The recipient does not appear to be online at this time. ' +
+        'Try again later.'};
       break;
     case 'ETTLEXPIRED':
       msgObj.content = { type: 'communication',
-        message: 'There seems to be trouble with your Internet connection.  Try again later.'};
+        message: 'There seems to be trouble with your Internet connection. ' +
+        'Try again later.'};
       break;
     default:
       msgObj.content = { type: 'communication',
-        message: 'A communication error occurred, see the console log for more information.'};
+        message: 'A communication error occurred, see the console log for ' +
+        'more information.'};
       break;
   }
   notifyGUI(msgObj);
@@ -77,7 +87,9 @@ function getContacts(forceReload) {
   if(contactList.size() > 0 || forceReload) {
     var msgObj = {};
     msgObj.method = 'contact';
-    msgObj.content = { type: 'initContactList', contactList: contactList.getAll() };
+    msgObj.content = {
+      type: 'initContactList', contactList: contactList.getAll()
+    };
     notifyGUI(msgObj);
   }
 }
@@ -86,9 +98,14 @@ function getContactRequests() {
   let msgObj = {};
   msgObj.method = 'contact';
   if(contactRequestList.size() > 0) {
-    msgObj.content = { type: 'initContactRequestList', contactRequestList: contactRequestList.getAll() };
+    msgObj.content = {
+      type: 'initContactRequestList',
+      contactRequestList: contactRequestList.getAll()
+    };
   } else {
-    msgObj.content = { type: 'clearContactRequestList', contactRequestList: {} };
+    msgObj.content = {
+      type: 'clearContactRequestList', contactRequestList: {}
+    };
   }
   notifyGUI(msgObj);
 }
@@ -98,7 +115,7 @@ function updateRequestStatus(contactAddress, status, updateGui) {
     updateGui = true;
   }
   let tmpContact = contactRequestList.get(contactAddress);
-  tmpContact.status=status;
+  tmpContact.status = status;
   contactRequestList.set(contactAddress, tmpContact);
   if(updateGui) {
     getContactRequests();
@@ -106,7 +123,8 @@ function updateRequestStatus(contactAddress, status, updateGui) {
 }
 
 function buildEncryptedMessage(destAddress, msgText) {
-  let tmpCrypto = new NoxiousCrypto({ 'pubPem': contactList.get(destAddress).pubPem });
+  let tmpCrypto =
+    new NoxiousCrypto({ 'pubPem': contactList.get(destAddress).pubPem });
   let msgContent = {};
   msgContent.type = 'message';
   msgContent.from = myAddress;
@@ -119,7 +137,8 @@ function buildEncryptedMessage(destAddress, msgText) {
   // encrypt using recipients public key
   let encryptedData = tmpCrypto.encrypt(JSON.stringify(msgObj));
   let encObj = {};
-  encObj.content = { type: 'encryptedData', clearFrom: myAddress, data: encryptedData};
+  encObj.content =
+    { type: 'encryptedData', clearFrom: myAddress, data: encryptedData};
   encObj.protocol = '1.0';
   return encObj;
 }
@@ -139,34 +158,41 @@ function buildContactRequest(destAddress) {
 
 function transmitContactRequest(destAddress) {
   contactRequestDomain.run(function() {
-    myNoxClient.transmitObject(destAddress, buildContactRequest(destAddress), function(res) {
-      switch(res.status) {
-        case 200:
-          updateRequestStatus(destAddress, 'delivered');
-          break;
-        case 409:
-          updateRequestStatus(destAddress, 'failed');
-          var msgObj = {};
-          msgObj.method = 'error';
-          var failedReason = res.body.reason;
-          switch(failedReason) {
-            case 'EKEYSIZE':
-              msgObj.content = { type: 'contact',
-                message: 'The contact request was rejected because your public encryption key is not proper.  Please upgrade your Noxious software.'};
-              break;
-            case 'EPROTOCOLVERSION':
-              msgObj.content = { type: 'contact',
-                message: 'The contact request was rejected because the message format is not proper.  Please upgrade your Noxious software.'};
-              break;
-            default:
-              msgObj.content = { type: 'contact',
-                message: 'The recipient already has your contact information.  Ask them to delete your contact information and try again.'};
-              break;
-          }
-          notifyGUI(msgObj);
-          break;
-      }
-    });
+    myNoxClient.transmitObject(
+      destAddress, buildContactRequest(destAddress), function(res) {
+        switch(res.status) {
+          case 200:
+            updateRequestStatus(destAddress, 'delivered');
+            break;
+          case 409:
+            updateRequestStatus(destAddress, 'failed');
+            var msgObj = {};
+            msgObj.method = 'error';
+            var failedReason = res.body.reason;
+            switch(failedReason) {
+              case 'EKEYSIZE':
+                msgObj.content = { type: 'contact',
+                  message: 'The contact request was rejected because your ' +
+                  'public encryption key is not proper.  Please upgrade your ' +
+                  'Noxious software.'};
+                break;
+              case 'EPROTOCOLVERSION':
+                msgObj.content = { type: 'contact',
+                  message: 'The contact request was rejected because the ' +
+                  'message format is not proper.  Please upgrade your ' +
+                  'Noxious software.'};
+                break;
+              default:
+                msgObj.content = { type: 'contact',
+                  message: 'The recipient already has your contact ' +
+                  'information.  Ask them to delete your contact ' +
+                  'information and try again.'};
+                break;
+            }
+            notifyGUI(msgObj);
+            break;
+        }
+      });
   });
 }
 
@@ -185,8 +211,10 @@ var server = http.createServer(function(req, res) {
       req.on('data', function(d) {
         reqBody += d;
         if(reqBody.length > 1e7) {
-          res.writeHead(413, 'Request Entity Too Large', {'Content-Type': 'text/html'});
-          res.end('<!doctype html><html><head><title>413</title></head><body>413: Request Entity Too Large</body></html>');
+          res.writeHead(
+            413, 'Request Entity Too Large', {'Content-Type': 'text/html'});
+          res.end('<!doctype html><html><head><title>413</title></head>' +
+          '<body>413: Request Entity Too Large</body></html>');
         }
       });
       req.on('end', function() {
@@ -208,7 +236,8 @@ server.listen(1111, '127.0.0.1');
 console.log('Server running at http://127.0.0.1:1111');
 
 function relayMessage(msg) {
-  mainWindow.webContents.send('msg', 'from: ' + msg.name + ' message: ' + msg.message);
+  mainWindow.webContents
+    .send('msg', 'from: ' + msg.name + ' message: ' + msg.message);
 }
 
 function registerContactRequest(req) {
@@ -225,13 +254,18 @@ function registerContactRequest(req) {
     console.log('[contact] New Contact Request Received');
     tmpObj.direction = 'incoming';
     contactRequestList.set(req.from, tmpObj);
-    let msgObj={};
+    let msgObj = {};
     msgObj.method = 'contact';
-    msgObj.content = { type: 'contactRequest', from: req.from, direction: 'incoming' };
+    msgObj.content =
+      { type: 'contactRequest', from: req.from, direction: 'incoming' };
     notifyGUI(msgObj);
-  } else if(contactRequestList.has(req.from) && contactRequestList.get(req.from).direction == 'outgoing') {
+  } else if(contactRequestList.has(req.from) &&
+    contactRequestList.get(req.from).direction == 'outgoing') {
     // this person accepted a contact request
-    contactList.set(req.from, { pubPem: tmpObj.pubPem, contactAddress: tmpObj.contactAddress });
+    contactList.set(
+      req.from, {
+        pubPem: tmpObj.pubPem, contactAddress: tmpObj.contactAddress
+      });
     contactRequestList.delete(req.from);
     getContacts();
     getContactRequests();
@@ -254,8 +288,10 @@ function preProcessMessage(msg) {
       if(content.type !== undefined) {
         switch(content.type) {
           case 'introduction':
-            if(content.from !== undefined && content.from && isValidTorHiddenServiceName(content.from)) {
-              if(!contactList.has(content.from) && !contactRequestList.has(content.from)) {
+            if(content.from !== undefined && content.from &&
+              isValidTorHiddenServiceName(content.from)) {
+              if(!contactList.has(content.from) &&
+                !contactRequestList.has(content.from)) {
                 // we don't know this person already, intro is OK
                 status.code = 200;
               } else if(contactRequestList.has(content.from) &&
@@ -274,19 +310,25 @@ function preProcessMessage(msg) {
               var minKeySize = 3072;
               var tmpCrypto = new NoxiousCrypto({ 'pubPem': content.pubPem });
               var keySize = tmpCrypto.keySize;
-              console.log('[preprocessing message] The key size is ', keySize, 'bits.');
+              console.log(
+                '[preprocessing message] The key size is ', keySize, 'bits.');
               if(keySize < minKeySize) {
-                console.log('[preprocessing message] The key must be at least ', minKeySize, ' bits');
+                console.log(
+                  '[preprocessing message] The key must be at least ',
+                  minKeySize, ' bits');
                 status.code = 409;
                 status.reason = 'EKEYSIZE';
               } else {
-                console.log('[preprocessing message] The key size meets the ', minKeySize, 'bit requirement');
+                console.log(
+                  '[preprocessing message] The key size meets the ',
+                  minKeySize, 'bit requirement');
                 status.code = 200;
               }
             }
             break;
           case 'encryptedData':
-            if(content.clearFrom !== undefined && content.clearFrom && isValidTorHiddenServiceName(content.clearFrom)) {
+            if(content.clearFrom !== undefined && content.clearFrom &&
+              isValidTorHiddenServiceName(content.clearFrom)) {
               if(contactList.has(content.clearFrom)) {
                 // this is from an existing contact, it's OK
                 status.code = 200;
@@ -316,22 +358,34 @@ cryptoWorker.on('message', function(msgObj) {
       var content = decObj.content;
       var signature = decObj.signature;
       // TODO additional integrity checks?
-      if(content.to && content.to == myAddress && content.from && isValidTorHiddenServiceName(content.from) && content.type && content.msgText) {
+      if(content.to && content.to == myAddress && content.from &&
+        isValidTorHiddenServiceName(content.from) && content.type &&
+        content.msgText) {
         if(contactList.has(content.from)) {
           switch(content.type) {
             case 'message':
-              var tmpCrypto = new NoxiousCrypto({'pubPem': contactList.get(content.from).pubPem});
+              var tmpCrypto = new NoxiousCrypto({
+                'pubPem': contactList.get(content.from).pubPem
+              });
               if(tmpCrypto.signatureVerified(jsStringify(content), signature)) {
                 console.log('[process message] Message is properly signed.');
-                if(content.to == myAddress && content.from !== undefined && content.from && content.from !== myAddress) {
-                  console.log('[process message] Message is properly addressed.');
-                  var msgObj = {};
-                  msgObj.method = 'message';
-                  msgObj.content = { type: 'message', from: content.from, msgText: content.msgText };
-                  notifyGUI(msgObj);
+                if(content.to == myAddress && content.from !== undefined &&
+                  content.from && content.from !== myAddress) {
+                  console.log(
+                    '[process message] Message is properly addressed.');
+                  var incomingMessage = {
+                    method: 'message',
+                    content: {
+                      type: 'message',
+                      from: content.from,
+                      msgText: content.msgText
+                    }
+                  };
+                  notifyGUI(incomingMessage);
                 }
               } else {
-                console.log('[process message] Message is NOT properly signed.  Disregarding.');
+                console.log('[process message] Message is NOT properly ' +
+                'signed.  Disregarding.');
               }
               break;
           }
@@ -350,14 +404,17 @@ function processMessage(msg) {
       var tmpCrypto = new NoxiousCrypto({ 'pubPem': content.pubPem });
       if(tmpCrypto.signatureVerified(jsStringify(content), signature)) {
         console.log('[process message] Introduction is properly signed.');
-        // TODO enhance from address checking, for now, not null or undefined, and not myAddress
-        if(content.to == myAddress && content.from !== undefined && content.from && content.from !== myAddress) {
+        // TODO enhance from address checking, for now, not null or undefined,
+        // and not myAddress
+        if(content.to == myAddress && content.from !== undefined &&
+          content.from && content.from !== myAddress) {
           // content.to and content.from are part of the signed content.
           console.log('[process message] Introduction is properly addressed.');
           registerContactRequest(content);
         }
       } else {
-        console.log('[process message] Introduction is NOT properly signed.  Disregarding.');
+        console.log('[process message] Introduction is NOT properly signed. ' +
+        'Disregarding.');
       }
       break;
     case 'encryptedData':
@@ -384,16 +441,18 @@ function startHiddenService() {
     console.log('Creating new noxious service');
     ths.createHiddenService('noxious','1111');
     ths.saveConfig();
-    // Why this?  https://github.com/Mowje/node-ths/issues/5
+    // FIXME: https://github.com/Mowje/node-ths/issues/5
     var myDelegate = function() {
       ths.signalReload();
     };
     var myVar = setTimeout(myDelegate, 250);
   }
-  // TODO does not work propery on initial startup: https://github.com/Mowje/node-ths/issues/3
+  // FIXME: does not work properly on initial startup:
+  // https://github.com/Mowje/node-ths/issues/3
   ths.getOnionAddress('noxious', function(err, onionAddress) {
     if(err) {
-      console.error('[getOnionAddress] Error while reading hostname file: ' + err);
+      console.error(
+        '[getOnionAddress] Error while reading hostname file: ' + err);
     } else {
       console.log('[getOnionAddress] Onion Address is: ', onionAddress);
       myAddress = onionAddress;
@@ -421,13 +480,12 @@ app.on('ready', function() {
   // var ipc = require('ipc');
   var workerMsg = {};
   workerMsg.type = 'init';
-  workerMsg.pathToKey = { path: Path.join(app.getPath('userData'), 'PrivateKey.json') };
+  workerMsg.pathToKey =
+    { path: Path.join(app.getPath('userData'), 'PrivateKey.json') };
   cryptoWorker.send(workerMsg);
 
   // Create the browser window.
   mainWindow = new BrowserWindow({width: 900, height: 600});
-  //  mainWindow = new BrowserWindow({width: 900, height: 600, 'web-preferences': {'overlay-scrollbars': true}});
-  //  mainWindow.openDevTools();
 
   ths.start(false, function() {
     console.log("tor Started!");
@@ -448,43 +506,55 @@ app.on('ready', function() {
     console.log('[message event] ', content);
     switch(content.type) {
       case 'sendEncrypted':
-        var encObj = buildEncryptedMessage(content.destAddress, content.msgText);
+        var encObj =
+          buildEncryptedMessage(content.destAddress, content.msgText);
         dataTransmitDomain.run(function() {
-          myNoxClient.transmitObject(content.destAddress, encObj, function(res) {
-            var msgObj = {};
-            switch(res.status) {
-              case 200:
-                // OK
-                msgObj.method = 'message';
-                msgObj.content = { type: 'status', status: 'delivered', msgId: content.msgId };
-                notifyGUI(msgObj);
-                break;
-              case 410:
-                // recipient does not have the public key (anymore)
-                msgObj.method = 'error';
-                msgObj.content = { type: 'message',
-                  message: 'The recipient no longer has you in their contact list.  Delete the contact, then send a contact request.'};
-                notifyGUI(msgObj);
-                msgObj.method = 'message';
-                msgObj.content = { type: 'status', status: 'failed', msgId: content.msgId };
-                notifyGUI(msgObj);
-                break;
-              case 409:
-                var failedReason = res.body.reason;
-                switch (failedReason) {
-                  case 'EPROTOCOLVERSION':
-                    msgObj.method = 'error';
-                    msgObj.content = { type: 'message',
-                      message: 'The message was rejected because the message format is not proper.  Please upgrade your Noxious software.'};
-                    notifyGUI(msgObj);
-                    msgObj.method = 'message';
-                    msgObj.content = { type: 'status', status: 'failed', msgId: content.msgId };
-                    notifyGUI(msgObj);
-                    break;
-                }
-                break;
-            }
-          });
+          myNoxClient.transmitObject(
+            content.destAddress, encObj, function(res) {
+              var msgObj = {};
+              switch(res.status) {
+                case 200:
+                  // OK
+                  msgObj.method = 'message';
+                  msgObj.content = {
+                    type: 'status', status: 'delivered', msgId: content.msgId
+                  };
+                  notifyGUI(msgObj);
+                  break;
+                case 410:
+                  // recipient does not have the public key (anymore)
+                  msgObj.method = 'error';
+                  msgObj.content = { type: 'message',
+                    message: 'The recipient no longer has you in their ' +
+                    'contact list.  Delete the contact, then send a contact ' +
+                    'request.'};
+                  notifyGUI(msgObj);
+                  msgObj.method = 'message';
+                  msgObj.content = {
+                    type: 'status', status: 'failed', msgId: content.msgId
+                  };
+                  notifyGUI(msgObj);
+                  break;
+                case 409:
+                  var failedReason = res.body.reason;
+                  switch(failedReason) {
+                    case 'EPROTOCOLVERSION':
+                      msgObj.method = 'error';
+                      msgObj.content = { type: 'message',
+                        message: 'The message was rejected because the ' +
+                        'message format is not proper.  Please upgrade your ' +
+                        'Noxious software.'};
+                      notifyGUI(msgObj);
+                      msgObj.method = 'message';
+                      msgObj.content = {
+                        type: 'status', status: 'failed', msgId: content.msgId
+                      };
+                      notifyGUI(msgObj);
+                      break;
+                  }
+                  break;
+              }
+            });
         });
         break;
     }
@@ -493,38 +563,49 @@ app.on('ready', function() {
   ipcMain.on('contact', function(event, content) {
     console.log('[contact event] ', content);
 
-    switch (content.type) {
+    switch(content.type) {
       case 'acceptContactRequest':
         // user has chosen to accept the contact request
         // send a contact request to sender to provide pubKey
         updateRequestStatus(content.contactAddress, 'sending', false);
         contactRequestDomain.run(function() {
-          myNoxClient.transmitObject(content.contactAddress, buildContactRequest(content.contactAddress), function(res) {
-            if(res.status == 200) {
-              contactList.set(content.contactAddress, { pubPem: contactRequestList.get(content.contactAddress).pubPem, contactAddress: content.contactAddress });
-              contactRequestList.delete(content.contactAddress);
-              getContacts();
-              getContactRequests();
-            } else if (res.status == 409) {
-              // this can occur in a case where a successfully transmitted contact
-              // request is deleted before a reply is sent.
-              updateRequestStatus(content.contactAddress, 'failed');
-              var msgObj = {};
-              msgObj.method = 'error';
-              var failedReason = res.body.reason;
-              switch (failedReason) {
-                case 'EKEYSIZE':
-                  msgObj.content = { type: 'contact',
-                    message: 'The contact request was rejected because your public encryption key is not proper.  Please upgrade your Noxious software.'};
-                  break;
-                default:
-                  msgObj.content = { type: 'contact',
-                    message: 'The recipient already has your contact information.  Ask them to delete your contact information and try again.'};
-                  break;
+          myNoxClient.transmitObject(
+            content.contactAddress, buildContactRequest(content.contactAddress),
+            function(res) {
+              if(res.status == 200) {
+                contactList.set(
+                  content.contactAddress, {
+                    pubPem: contactRequestList
+                      .get(content.contactAddress).pubPem,
+                    contactAddress: content.contactAddress
+                  });
+                contactRequestList.delete(content.contactAddress);
+                getContacts();
+                getContactRequests();
+              } else if(res.status == 409) {
+                // this can occur in a case where a successfully transmitted
+                // contact request is deleted before a reply is sent.
+                updateRequestStatus(content.contactAddress, 'failed');
+                var msgObj = {};
+                msgObj.method = 'error';
+                var failedReason = res.body.reason;
+                switch(failedReason) {
+                  case 'EKEYSIZE':
+                    msgObj.content = { type: 'contact',
+                      message: 'The contact request was rejected because ' +
+                      'your public encryption key is not proper.  Please ' +
+                      'upgrade your Noxious software.'};
+                    break;
+                  default:
+                    msgObj.content = { type: 'contact',
+                      message: 'The recipient already has your contact ' +
+                      'information.  Ask them to delete your contact ' +
+                      'information and try again.'};
+                    break;
+                }
+                notifyGUI(msgObj);
               }
-              notifyGUI(msgObj);
-            }
-          });
+            });
         });
         break;
       case 'delContactRequest':
@@ -535,28 +616,33 @@ app.on('ready', function() {
         getContactRequests();
         break;
       case 'sendContactRequest':
+        var msgObj = {};
         // do not send request to myAddress or to existing contacts
-        if(content.contactAddress==myAddress) {
-          var msgObj = {};
+        if(content.contactAddress === myAddress) {
           msgObj.method = 'error';
-          msgObj.content = { type: 'contact',
-            message: 'You may not send a contact request to your own Client ID.'};
+          msgObj.content = {
+            type: 'contact',
+            message: 'You may not send a contact request to your own ' +
+            'Client ID.'};
           notifyGUI(msgObj);
-        } else if (contactList.has(content.contactAddress)) {
-          var msgObj = {};
+        } else if(contactList.has(content.contactAddress)) {
           msgObj.method = 'error';
           msgObj.content = { type: 'contact',
-            message: 'You may not send a contact request to an existing contact.  Delete the contact and try again.'};
+            message: 'You may not send a contact request to an existing ' +
+            'contact.  Delete the contact and try again.'};
           notifyGUI(msgObj);
-        } else if (contactRequestList.get(content.contactAddress)) {
-          var msgObj = {};
+        } else if(contactRequestList.get(content.contactAddress)) {
           msgObj.method = 'error';
           msgObj.content = { type: 'contact',
-            message: 'There is already a pending contact request for this Client ID.  Delete the contact request and try again.'};
+            message: 'There is already a pending contact request for this ' +
+            'Client ID.  Delete the contact request and try again.'};
           notifyGUI(msgObj);
         } else {
           transmitContactRequest(content.contactAddress);
-          var contactRequest = { contactAddress: content.contactAddress, direction: 'outgoing', status: 'sending' };
+          var contactRequest = {
+            contactAddress: content.contactAddress,
+            direction: 'outgoing', status: 'sending'
+          };
           contactRequestList.set(content.contactAddress, contactRequest);
           // reinit the request list
           getContactRequests();
@@ -570,13 +656,13 @@ app.on('ready', function() {
         break;
       case 'setNickName':
         var contactInfo = contactList.get(content.contactAddress);
-        contactInfo.nickName=content.nickName;
+        contactInfo.nickName = content.nickName;
         contactList.set(content.contactAddress, contactInfo);
         break;
       case 'delNickName':
-        var contactInfo = contactList.get(content.contactAddress);
-        contactInfo.nickName='';
-        contactList.set(content.contactAddress, contactInfo);
+        var contactInfoDel = contactList.get(content.contactAddress);
+        contactInfoDel.nickName = '';
+        contactList.set(content.contactAddress, contactInfoDel);
         break;
       case 'delContact':
         contactList.delete(content.contactAddress);
@@ -595,7 +681,7 @@ app.on('ready', function() {
 });
 
 app.on('before-quit', function(e) {
-  if (ths.isTorRunning()) {
+  if(ths.isTorRunning()) {
     e.preventDefault();
     ths.stop(function () {
       console.log("tor has been stopped");
